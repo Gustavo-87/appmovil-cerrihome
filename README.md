@@ -12,6 +12,10 @@ Primera versión funcional de la aplicación de portería y administración del 
 - Panel de administración con todas las reservas, búsqueda y exportación CSV del resultado de búsqueda.
 - Persistencia local, navegación móvil y formularios accesibles mediante teclado.
 - Datos de ejemplo identificados como demostración. Fechas del conjunto en `America/Bogota`.
+- Modo claro y oscuro con selector en la barra superior: inicialmente sigue el tema del dispositivo; la elección manual se conserva en `localStorage` bajo `cerritos-theme` y se comparte entre pestañas.
+- Tarjetas de colores con efecto liquid glass: transparencias, reflejos, bordes suaves y desenfoque. Incluye superficies opacas cuando el navegador no admite el desenfoque o se solicita reducir la transparencia; respeta la preferencia de movimiento reducido.
+
+Para cambiar de apariencia, pulsa el control **Claro / Oscuro** de la barra superior. Para volver a seguir automáticamente al dispositivo, elimina únicamente la clave `cerritos-theme` del almacenamiento del navegador y recarga; las reservas y demás datos permanecen intactos. Si el navegador bloquea el almacenamiento, el selector sigue funcionando durante la sesión, pero no puede recordar la elección al recargar.
 
 ## Desarrollo
 
@@ -43,7 +47,7 @@ BROWSER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
 
 En otro equipo, instala el navegador con `npx playwright install chromium` y ejecuta `npm run test:e2e` sin `BROWSER_EXECUTABLE_PATH`. Puedes cambiar el servidor con `CERRITOS_TEST_URL`.
 
-La prueba utiliza contextos de navegador aislados con datos ficticios. Comprueba conflictos de horarios, creación, persistencia después de recargar, cancelación, ingreso duplicado, salida, novedad asociada, resolución, búsqueda administrativa y exportación. Revisa además la navegación móvil a 390 px y errores de ejecución. Guarda capturas y el CSV en `/tmp/cerritos-validation`.
+La prueba utiliza contextos de navegador aislados con datos ficticios. Comprueba conflictos de horarios, creación, persistencia después de recargar, cancelación, ingreso duplicado, salida, novedad asociada, resolución, búsqueda administrativa y exportación. Revisa además la navegación móvil a 390 px, el tema del dispositivo, el selector mediante teclado, la preferencia guardada después de recargar y errores de ejecución. Los flujos principales se ejecutan en modo oscuro. Guarda capturas de ambos temas y el CSV en `/tmp/cerritos-validation`.
 
 ## Alcance de esta versión
 
@@ -66,6 +70,9 @@ Antes de usar datos reales con el equipo: conectar una base de datos y un servic
 - `src/domain.ts`: modelos, datos de demostración, validación y lectura del almacenamiento.
 - `src/domain.test.ts`: pruebas de las reglas de reservas y vehículos.
 - `src/styles.css`: diseño adaptable a móvil y escritorio.
+- `src/theme.css`: paleta de ambos temas y efecto liquid glass.
+- `src/useTheme.ts`: preferencia de apariencia, cambios del sistema y sincronización entre pestañas.
+- `public/theme-init.js`: aplica el tema antes de que se muestre la aplicación.
 - `tests/smoke.cjs`: prueba funcional en navegador.
 - `public/`: icono y manifiesto web.
 

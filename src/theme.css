@@ -1,0 +1,249 @@
+/* Shared palette: glass surfaces always sit on an opaque, readable base. */
+:root {
+  --canvas: #edf3ef;
+  --ink: #213e34;
+  --secondary: #506b5e;
+  --muted: #64776e;
+  --line: rgb(49 87 66 / 13%);
+  --glass: rgb(255 255 255 / 68%);
+  --glass-solid: #f5f9f6;
+  --chrome: rgb(247 252 248 / 86%);
+  --inset: rgb(255 255 255 / 50%);
+  --hover: rgb(68 136 96 / 8%);
+  --field: #fbfdfa;
+  --edge: rgb(255 255 255 / 86%);
+  --glint: rgb(255 255 255 / 70%);
+  --shadow: 0 12px 32px -16px rgb(37 80 61 / 20%);
+  --accent: #286047;
+  --accent-soft: #dfede3;
+  --focus: #28734f;
+  --mint: 49 159 114;
+  --sky: 67 143 216;
+  --peach: 227 143 64;
+  --lilac: 147 111 213;
+  --tint-strength: 19%;
+  --mint-text: #326a50;
+  --sky-text: #326894;
+  --peach-text: #8a551e;
+  --lilac-text: #705393;
+  --danger-text: #9b4138;
+  --danger-surface: #f8e7e1;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+:root[data-theme='dark'] {
+  --canvas: #0d1b18;
+  --ink: #e8f3ed;
+  --secondary: #c0d4c9;
+  --muted: #a2bdb0;
+  --line: rgb(179 218 194 / 14%);
+  --glass: rgb(25 44 37 / 81%);
+  --glass-solid: #1b3028;
+  --chrome: rgb(17 35 29 / 94%);
+  --inset: rgb(188 226 198 / 5%);
+  --hover: rgb(170 228 194 / 9%);
+  --field: #142a22;
+  --edge: rgb(193 234 211 / 22%);
+  --glint: rgb(210 255 226 / 10%);
+  --shadow: 0 14px 34px -15px rgb(0 0 0 / 48%);
+  --accent: #9ddbb7;
+  --accent-soft: #294b39;
+  --focus: #b4e9c9;
+  --mint: 60 195 140;
+  --sky: 96 165 240;
+  --peach: 238 157 80;
+  --lilac: 173 131 242;
+  --tint-strength: 22%;
+  --mint-text: #b0e8c8;
+  --sky-text: #bddcfe;
+  --peach-text: #f5c99a;
+  --lilac-text: #dcc8fb;
+  --danger-text: #ffc1b6;
+  --danger-surface: #482c28;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 14% 8%, rgb(var(--mint) / 13%), transparent 45%),
+    radial-gradient(ellipse at 97% 24%, rgb(var(--lilac) / 11%), transparent 40%),
+    radial-gradient(ellipse at 63% 91%, rgb(var(--sky) / 9%), transparent 50%),
+    var(--canvas);
+  min-height: 100vh;
+}
+
+::selection { background: var(--accent-soft); color: var(--ink); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--focus);
+}
+.search-input:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Reflections are painted backgrounds, so they cannot block taps or focus. */
+.panel, .stat-card, .space-card, .welcome-card, .community-card {
+  background: linear-gradient(135deg, var(--glint), transparent 45%), var(--glass);
+  border: 1px solid var(--edge);
+  border-bottom-color: var(--line);
+  border-radius: 17px;
+  box-shadow: inset 0 1px 0 var(--glint), var(--shadow);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+  backdrop-filter: blur(16px) saturate(135%);
+}
+.sidebar, .topbar, .mobile-bottom-nav {
+  background: var(--chrome);
+  border-color: var(--line);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+[data-tone='green'], .green, .gym { --tint: var(--mint); --tint-text: var(--mint-text); }
+[data-tone='blue'], .blue { --tint: var(--sky); --tint-text: var(--sky-text); }
+[data-tone='orange'], .orange, .bbq { --tint: var(--peach); --tint-text: var(--peach-text); }
+[data-tone='purple'], .purple, .social { --tint: var(--lilac); --tint-text: var(--lilac-text); }
+
+.stat-card, .space-card {
+  background:
+    linear-gradient(130deg, var(--glint), transparent 48%),
+    radial-gradient(ellipse at 95% 0, rgb(var(--tint) / 28%), transparent 78%),
+    linear-gradient(rgb(var(--tint) / 7%), rgb(var(--tint) / 7%)),
+    var(--glass);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.stat-icon, .quick-icon, .area-icon, .area-label, .form-areas button, .detail-area {
+  color: var(--tint-text);
+  background: rgb(var(--tint) / var(--tint-strength));
+  box-shadow: inset 0 1px 0 var(--glint);
+}
+.stat-icon { border-radius: 11px; width: 36px; height: 36px; }
+.stat-number { color: var(--ink); }
+.stat-number > svg { color: var(--tint-text); }
+.stat-top { color: var(--secondary); }
+.stat-foot { color: var(--secondary); }
+
+.social .space-art, .gym .space-art, .bbq .space-art {
+  color: var(--tint-text);
+  background: linear-gradient(135deg, rgb(var(--tint) / 10%), rgb(var(--tint) / 23%));
+}
+.space-art > svg { filter: drop-shadow(3px 5px 0 var(--glint)); }
+.space-info { background: var(--inset); }
+.space-info strong { color: var(--ink); }
+.space-book { color: var(--tint-text); background: var(--chrome); border: 1px solid var(--edge); }
+.welcome-card, .community-card {
+  background: linear-gradient(135deg, var(--glint), transparent 50%),
+    radial-gradient(ellipse at 90% 90%, rgb(var(--mint) / 20%), transparent 90%), var(--glass);
+}
+.welcome-card h2, .community-card strong { color: var(--ink); }
+.welcome-card p { color: var(--secondary); }
+.welcome-tag, .welcome-caption { color: var(--secondary); }
+.hill-one { background: rgb(var(--mint) / 15%); }
+.hill-two { background: rgb(var(--mint) / 25%); }
+.landscape-house { color: var(--accent); fill: var(--glass-solid); }
+.landscape-tree { color: var(--accent); }
+.sun { background: rgb(var(--peach) / 45%); }
+.community-symbol { background: var(--accent-soft); color: var(--accent); }
+
+/* Text colors cover every page and the native dialog top layer. */
+.community-label, .workspace-label, .community-card p, .help-button, .sidebar-footer,
+.breadcrumb, .date-top, .profile-text span, .eyebrow, .page-heading p, .demo-banner,
+.panel-heading p, .date-controls > span, .icon-button, .day > span, .tabs button,
+.list-label, .list-label > span > span, .date-picker input, .time-cell > span,
+.reservation-main > span, .dot, .row-chevron, .agenda-footer > span,
+.quick-actions small, .latest-item small, .section-title > span, .space-info > span,
+.main-footer, .vehicle-card p, .vehicle-times, .incident-meta, .incident-card p,
+.vehicle-link, .subtle, .resident-cell small, .empty p, .checkbox-label,
+.dialog-heading p, .optional, .form-hint, .reservation-detail dt, .cancellation p,
+.help-content > p, .help-note { color: var(--muted); }
+.breadcrumb strong, .resident-cell strong, .help-content strong, .detail-area h3,
+.quick-actions strong, .latest-item strong, .reservation-main > strong,
+.form-grid label, .incident-card h3, .vehicle-card h3 { color: var(--ink); }
+.sidebar nav button, .mobile-bottom-nav button { color: var(--secondary); }
+.sidebar nav button.active, .mobile-bottom-nav button.active, .tabs button.selected {
+  background: var(--accent-soft); color: var(--accent);
+}
+.sidebar nav button:hover, .tabs button:hover, .icon-button:hover,
+.reservation-row:hover, .day:hover:not(.selected) { background: var(--hover); }
+.nav-count, .pending { color: var(--peach-text); background: rgb(var(--peach) / 15%); }
+.count-pill, .confirmed { color: var(--mint-text); background: rgb(var(--mint) / 13%); }
+.muted { color: var(--secondary); background: var(--hover); }
+.cancelled { opacity: 1; }
+.text-button { color: var(--accent); }
+.text-button:hover { color: var(--ink); }
+.all-good, .empty { color: var(--accent); }
+.profile-avatar, .avatar { color: var(--secondary); background: var(--inset); border-color: var(--line); }
+.day { background: var(--inset); border-color: var(--line); }
+.day.selected { background: #285a43; border-color: #487d60; color: #fff; box-shadow: 0 5px 14px rgb(23 56 40 / 22%); }
+.day.selected > span { color: #e0f3e5; }
+.day > i.has-reservations { background: var(--accent); }
+.day.selected > i.has-reservations { background: #d4efb9; }
+.small-dot, .online-dot { background: var(--accent); }
+.incident-dot, .demo-dot { background: var(--peach-text); }
+.demo-banner p, .reservation-row, .quick-actions > button, .latest-item,
+.vehicle-times, td, .cancellation, .form-actions { border-color: var(--line); }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 11px;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--glint), transparent), var(--inset);
+  box-shadow: inset 0 1px 0 var(--glint);
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background-color: var(--hover); }
+.theme-toggle-track { display: flex; align-items: center; width: 27px; height: 16px; border-radius: 20px; padding: 2px; background: var(--line); }
+.theme-toggle-track > span { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); transition: transform .2s ease; }
+.theme-toggle[aria-checked='true'] .theme-toggle-track > span { transform: translateX(11px); }
+
+.primary { background: #285a43; color: #fff; border: 1px solid #47785d; box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), 0 5px 12px rgb(20 60 36 / 14%); }
+.primary:hover { background: #356e53; }
+.secondary { color: var(--accent); background: var(--inset); border-color: var(--line); }
+.secondary:hover { background: var(--hover); }
+.danger, .error { color: var(--danger-text); background: var(--danger-surface); border-color: var(--line); }
+.search-input, .form-grid input, .form-grid textarea, .form-grid select {
+  color: var(--ink); background: var(--field); border-color: var(--line); outline-color: var(--focus);
+}
+.search-input input { color: var(--ink); }
+.search-input input::placeholder, .form-grid input::placeholder, .form-grid textarea::placeholder { color: var(--muted); opacity: 1; }
+.checkbox-label input { accent-color: var(--accent); }
+.form-areas button { opacity: 1; }
+.form-areas button.selected { border-color: var(--accent); }
+.vehicle-card { border-color: var(--line); border-radius: 13px; background: linear-gradient(135deg, rgb(var(--sky) / 7%), transparent), var(--inset); }
+.vehicle-icon { color: var(--sky-text); background: rgb(var(--sky) / 15%); }
+.admin-notice, .linked-vehicle, .help-note { color: var(--accent); background: var(--accent-soft); border-color: var(--line); }
+.admin-notice p { color: var(--secondary); }
+th { color: var(--secondary); background: var(--inset); }
+td { color: var(--secondary); }
+dialog { color: var(--ink); background: linear-gradient(140deg, var(--glint), transparent 45%), var(--glass-solid); border-color: var(--edge); border-radius: 20px; box-shadow: 0 30px 100px rgb(0 0 0 / 35%), inset 0 1px 0 var(--glint); }
+dialog::backdrop { background: rgb(7 22 17 / 62%); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+.toast { background: var(--glass-solid); color: var(--ink); border: 1px solid var(--edge); box-shadow: var(--shadow); }
+.toast button { color: var(--accent); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .stat-card:hover, .space-card:hover { transform: translateY(-3px); border-color: var(--edge); box-shadow: inset 0 1px 0 var(--glint), 0 15px 30px -12px rgb(var(--tint) / 25%); }
+}
+@media (max-width: 700px) {
+  .panel, .stat-card, .space-card, .welcome-card, .community-card { -webkit-backdrop-filter: blur(8px) saturate(125%); backdrop-filter: blur(8px) saturate(125%); }
+  .theme-toggle { min-height: 44px; gap: 6px; padding: 7px 9px; }
+  .theme-toggle-track { display: none; }
+  .date-top { display: none; }
+  .topbar-right { gap: 10px; }
+  .stat-icon { width: 28px; height: 28px; }
+  .mobile-bottom-nav { box-shadow: 0 -6px 25px rgb(0 0 0 / 5%); }
+}
+
+/* Opaque alternatives retain the palette when blur is unsupported or unwanted. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel, .stat-card, .space-card, .welcome-card, .community-card { --glass: var(--glass-solid); }
+  .sidebar, .topbar, .mobile-bottom-nav { background: var(--glass-solid); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .panel, .stat-card, .space-card, .welcome-card, .community-card { --glass: var(--glass-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .sidebar, .topbar, .mobile-bottom-nav { background: var(--glass-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

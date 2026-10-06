@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 
 type Theme = 'light' | 'dark';
 const KEY = 'cerritos-theme';
@@ -33,6 +34,9 @@ export function useTheme() {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#10231f' : '#edf3ef');
+    if (Capacitor.getPlatform() === 'android') {
+      void SystemBars.setStyle({ style: theme === 'dark' ? SystemBarsStyle.Dark : SystemBarsStyle.Light }).catch(console.error);
+    }
   }, [theme]);
 
   const toggleTheme = () => {

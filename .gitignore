@@ -5,3 +5,6 @@ dist/
 !.env.example
 *.local
 *.tsbuildinfo
+*.jks
+*.keystore
+artifacts/

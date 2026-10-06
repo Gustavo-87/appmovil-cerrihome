@@ -247,3 +247,26 @@ dialog::backdrop { background: rgb(7 22 17 / 62%); -webkit-backdrop-filter: blur
   .sidebar, .topbar, .mobile-bottom-nav { background: var(--glass-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
   dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* Capacitor injects these insets for Android WebViews; Safari uses env(). */
+:root {
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --topbar-height: 83px;
+}
+body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
+.topbar { height: calc(var(--topbar-height) + var(--safe-top)); padding-top: var(--safe-top); }
+.sidebar { padding-top: calc(35px + var(--safe-top)); padding-bottom: var(--safe-bottom); }
+.mobile-bottom-nav {
+  padding-bottom: calc(8px + var(--safe-bottom));
+  padding-left: calc(7px + var(--safe-left)); padding-right: calc(7px + var(--safe-right));
+}
+dialog { max-height: calc(100dvh - 42px - var(--safe-top) - var(--safe-bottom)); }
+@media (max-width: 700px) {
+  :root { --topbar-height: 64px; }
+  main { padding-bottom: calc(78px + var(--safe-bottom)); }
+  .toast { bottom: calc(85px + var(--safe-bottom)); }
+  dialog { max-height: calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom)); }
+}

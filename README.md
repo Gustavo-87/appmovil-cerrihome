@@ -37,6 +37,18 @@ npm run preview -- --port 4173
 
 `build` valida TypeScript y genera los archivos estáticos en `dist/`. Las fuentes tipográficas se incluyen con la aplicación: no depende de Google Fonts en ejecución. Las dependencias están fijadas en `package-lock.json`.
 
+## Aplicación Android
+
+El proyecto incluye Capacitor y una aplicación instalable para Android. Consulta [la guía de Android](docs/ANDROID.md) para instalar el APK, preparar Android Studio en Mac y probar con un teléfono por USB.
+
+```bash
+npm run android:sync   # Compila la interfaz y sincroniza el proyecto nativo
+npm run android:open   # Abre Android Studio
+npm run android:apk    # Genera un APK de pruebas; requiere JDK 21 y SDK 36
+```
+
+El APK se genera en `artifacts/cerritos-home-0.1.0-debug.apk`, acompañado por su SHA256. Incluye la interfaz dentro de la aplicación, icono propio, botón Atrás y exportación mediante el selector nativo de compartir. Los archivos APK y las claves de firma no se suben al repositorio.
+
 ## Validación funcional
 
 Con el servidor de desarrollo en ejecución y Chromium instalado:
@@ -51,9 +63,9 @@ La prueba utiliza contextos de navegador aislados con datos ficticios. Comprueba
 
 ## Alcance de esta versión
 
-Es un prototipo funcional local, no un sistema de producción multiusuario ni un APK nativo. El manifiesto proporciona nombre, icono y presentación para navegadores compatibles; no se ha implementado funcionamiento sin conexión ni distribución por Play Store.
+Es un prototipo funcional local disponible como web y APK Android con Capacitor. El APK incluye sus recursos para abrir los flujos locales sin un servidor de desarrollo; esa capacidad debe verificarse en el teléfono de prueba. La versión web no implementa caché sin conexión. Aún no hay sistema multiusuario ni distribución por Google Play.
 
-- Los datos están en `localStorage`, bajo `cerritos-home-v1`, dentro de cada navegador. No se comparten entre dispositivos o pestañas ni existe respaldo en servidor.
+- Los datos están en `localStorage`, bajo `cerritos-home-v1`, dentro de cada navegador o instalación Android. No se comparten entre dispositivos, pestañas o entre Chrome y la app Android; no existe respaldo en servidor.
 - El panel administrativo es una vista de demostración; no hay inicio de sesión ni autorización por roles.
 - El gimnasio se reserva de manera exclusiva por franja, igual que los otros espacios. Aforo compartido, horarios de apertura, anticipación máxima, aprobación y tarifas requieren definir el reglamento del conjunto.
 - No incluye notificaciones push, fotos de vehículos ni lectura de placas.
@@ -72,6 +84,11 @@ Antes de usar datos reales con el equipo: conectar una base de datos y un servic
 - `src/styles.css`: diseño adaptable a móvil y escritorio.
 - `src/theme.css`: paleta de ambos temas y efecto liquid glass.
 - `src/useTheme.ts`: preferencia de apariencia, cambios del sistema y sincronización entre pestañas.
+- `src/native.ts`: botón Atrás de Android y exportación nativa de CSV.
+- `src/native.test.ts`: pruebas de exportación nativa con plugins simulados.
+- `capacitor.config.ts` y `android/`: configuración y proyecto Android.
+- `scripts/build-android.mjs`: compilación del APK de pruebas y cálculo de su SHA256.
+- `docs/ANDROID.md`: instalación, desarrollo en Mac y recorrido de pruebas en teléfono.
 - `public/theme-init.js`: aplica el tema antes de que se muestre la aplicación.
 - `tests/smoke.cjs`: prueba funcional en navegador.
 - `public/`: icono y manifiesto web.

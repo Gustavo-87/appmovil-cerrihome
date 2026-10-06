@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Building2, CalendarDays, Car, Check, CheckCheck, ChevronLeft, ChevronRight, Clock3, Download, Dumbbell, Flame, HelpCircle, House, LayoutDashboard, Leaf, LogOut, Menu, MessageSquareText, Moon, Plus, Search, ShieldCheck, SlidersHorizontal, Sun, Users, X } from 'lucide-react';
 import { areas, loadData, reservationError, shiftDate, STORAGE_KEY, today, vehicleError, type Area, type Data, type Reservation, type Vehicle } from './domain';
 import { useTheme } from './useTheme';
+import { exportCsv, useAndroidBackButton } from './native';
 
 type Page = 'Inicio' | 'Reservas' | 'Vehículos' | 'Novedades' | 'Administración';
 type Modal = {type:'reservation'} | {type:'vehicle'} | {type:'incident';vehicle?:Vehicle} | {type:'detail';reservation:Reservation} | {type:'help'} | null;
@@ -40,6 +41,12 @@ export default function App() {
   useEffect(()=>{ if(initial.error) return; try {localStorage.setItem(STORAGE_KEY,JSON.stringify(data));setStorageError('');}catch {setStorageError('No se pudieron guardar los cambios en este dispositivo. No cierres la página hasta liberar espacio en el navegador.');} },[data,initial.error]);
   useEffect(()=>{ if(!toast)return; const timer=setTimeout(()=>setToast(''),4500);return ()=>clearTimeout(timer); },[toast]);
   const go = (next: Page) => {setPage(next);setSearch('');setMobileNav(false);};
+  useAndroidBackButton(() => {
+    if (modal) { setModal(null); return true; }
+    if (mobileNav) { setMobileNav(false); return true; }
+    if (page !== 'Inicio') { go('Inicio'); return true; }
+    return false;
+  });
   const open = (m:Modal) => {setError('');setConfirmCancel(false);setModal(m);};
   const notify = (message:string) => {setModal(null);setToast(message);};
   const matches = (...values:string[]) => values.join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase());
@@ -67,10 +74,13 @@ export default function App() {
     if(!title||!description){setError('Completa el título y la descripción.');return;}
     setData(d=>({...d,incidents:[{id:id(),title,description,category:String(f.get('category')),vehicleId:modal?.type==='incident'?modal.vehicle?.id:undefined,created:new Date().toISOString(),resolved:false},...d.incidents]}));setIncidentFilter('Pendientes');setSearch('');notify('Novedad registrada correctamente');
   };
-  const exportReservations = () => {
+  const exportReservations = async () => {
     const cell = (value:string) => `"${(/^[=+\-@\t\r]/.test(value)?"'":'')+value.replaceAll('"','""')}"`;
     const rows=[['Fecha','Zona','Residente','Vivienda','Entrada','Salida','Estado','Observaciones'],...data.reservations.filter(r=>matches(r.resident,r.unit,r.area)).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)).map(r=>[r.date,r.area,r.resident,r.unit,r.start,r.end,r.cancelled?'Cancelada':'Confirmada',r.notes])];
-    const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(row=>row.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download=`reservas-cerritos-${today()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setToast('Reporte de reservas exportado');
+    try {
+      const result = await exportCsv('\uFEFF'+rows.map(row=>row.map(cell).join(',')).join('\r\n'), `reservas-cerritos-${today()}.csv`);
+      setToast(result==='cancelled'?'Exportación cancelada':result==='shared'?'Reporte listo para compartir':'Reporte de reservas exportado');
+    } catch { setToast('No se pudo exportar el reporte. Intenta nuevamente.'); }
   };
   const ReservationRow = ({r}: {r:Reservation}) => <button className={`reservation-row ${r.cancelled?'cancelled':''}`} onClick={()=>open({type:'detail',reservation:r})}><div className="time-cell"><strong>{r.start}</strong><span>{r.end}</span></div><span className={`area-icon ${areaClass(r.area)}`}><AreaIcon area={r.area}/></span><div className="reservation-main"><strong>{r.area}</strong><span>{r.resident} <span className="dot">·</span> {r.unit}</span></div><span className={`status ${r.cancelled?'muted':'confirmed'}`}>{r.cancelled?'Cancelada':'Confirmada'}</span><ChevronRight size={17} className="row-chevron"/></button>;
   const Empty = ({text,detail}: {text:string;detail:string}) => <div className="empty"><CalendarDays size={30}/><h3>{text}</h3><p>{detail}</p></div>;

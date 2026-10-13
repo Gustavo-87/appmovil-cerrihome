@@ -34,3 +34,5 @@ dialog{width:min(560px,calc(100% - 32px));border:1px solid #e5eadf;border-radius
 .user-row strong{display:block;margin-bottom:14px;overflow-wrap:anywhere}
 button:disabled{opacity:.55;cursor:wait}
 @media(max-width:520px){.auth-card{padding:24px}.auth-theme{right:16px;top:16px}.users-panel{padding:18px}.connection-toolbar{align-items:flex-start}}
+
+.sync-panel{border:1px solid var(--line);background:var(--field);border-radius:12px;padding:12px 16px;margin-bottom:18px}.sync-panel .connection-toolbar{margin:0}.sync-panel>p{margin-top:10px;line-height:1.6;font-size:12px}.sync-failure{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.sync-failure p{margin:8px 0;color:var(--danger-text)}.sync-failure small{color:var(--muted)}.sync-failure>div{display:flex;gap:16px}

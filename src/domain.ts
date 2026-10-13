@@ -1,7 +1,7 @@
 export type Area = 'Salón social' | 'Gimnasio' | 'Golfito';
-export type Reservation = { id: string; resident: string; unit: string; area: Area; date: string; start: string; end: string; notes: string; cancelled: boolean; ownerId?: string };
-export type Vehicle = { id: string; plate: string; driver: string; unit: string; reason: string; entered: string; exited: string | null };
-export type Incident = { id: string; title: string; description: string; category: string; created: string; resolved: boolean; vehicleId?: string; ownerId?: string };
+export type Reservation = { id: string; resident: string; unit: string; area: Area; date: string; start: string; end: string; notes: string; cancelled: boolean; ownerId?: string; syncStatus?: 'pending' };
+export type Vehicle = { id: string; plate: string; driver: string; unit: string; reason: string; entered: string; exited: string | null; syncStatus?: 'pending' };
+export type Incident = { id: string; title: string; description: string; category: string; created: string; resolved: boolean; vehicleId?: string; ownerId?: string; syncStatus?: 'pending' };
 export type Data = { reservations: Reservation[]; vehicles: Vehicle[]; incidents: Incident[] };
 export const areas: Area[] = ['Salón social', 'Gimnasio', 'Golfito'];
 export const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());

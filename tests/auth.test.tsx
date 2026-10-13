@@ -14,7 +14,7 @@ vi.mock('../src/backend',()=>({
  backendError:(e:any)=>e.code==='reservation_conflict'?'Esta zona ya está reservada en ese horario.':'Operación rechazada.',
  watchProfile:vi.fn((_id,callback)=>{state.profileCallback=callback;callback({id:'operator',email:'operator@example.com',name:'Operador',unit:'',role:state.role,active:state.active});return ()=>{};}),
  subscribeData:vi.fn(callback=>{callback(state.data);return ()=>{};}),fetchData:vi.fn(async()=>state.data),
- listProfiles:vi.fn(async()=>[]),createAccount:vi.fn(),rpc:state.rpc,
+ listProfiles:vi.fn(async()=>[]),createAccount:vi.fn(),rpc:state.rpc,watchQueue:vi.fn((_uid,cb)=>{cb([]);return()=>{};}),syncPending:vi.fn(),retryQueued:vi.fn(),removeQueued:vi.fn(),getQueue:vi.fn(async()=>[]),
 }));
 beforeEach(()=>{
  state.role='guard';state.active=true;state.loginFails=false;state.rpc.mockReset();state.reset.mockReset();

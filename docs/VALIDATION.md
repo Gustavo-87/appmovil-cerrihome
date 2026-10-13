@@ -1,17 +1,17 @@
-# Verificación 0.3.0 — 13 de octubre de 2026
+# Verificación 0.4.0 — 13 de octubre de 2026
 
-Implementación local preparada para Firebase Spark y Golfito. **El proyecto real aún no existe y no se ha desplegado.**
+Implementación de Android sin conexión y sincronización preparada. El APK se compiló; queda pendiente la prueba física con las cuentas del conjunto.
 
-- `npm test`: 37 pruebas aprobadas. Dominio, conversión de reservas locales BBQ → Golfito, roles, configuración, transacciones del servidor con almacén atómico simulado, autorización HTTP y acceso por contraseña con Firebase simulado.
-- `npm run test:e2e`: recorrido de demostración en Chromium aprobado, incluido Golfito, cruces, cancelación, vehículos, novedades, exportación y navegación móvil.
-- `npm run build:production`: TypeScript y Vite aprobados con configuración pública ficticia, únicamente para verificar la compilación y el servidor.
-- Compilación real servida en Chromium: muestra correo/contraseña de Firebase, sin navegación operativa antes del ingreso y sin errores de ejecución.
-- `npm run test:server`: web, assets, cabeceras, bloqueo de configuración y métodos HTTP aprobados.
-- `npm audit --omit=dev`: ninguna vulnerabilidad reportada en dependencias de ejecución durante esta revisión. Se fija una versión corregida de `@grpc/grpc-js` mediante `overrides`.
+- `npm test`: 49 pruebas aprobadas. Incluye cola IndexedDB con almacenamiento simulado, aislamiento por usuario, orden de registros locales, reintentos, conflictos, autenticación simulada y autorización del servidor.
+- Chromium con IndexedDB real: registro con red desactivada, cierre/reapertura del navegador y recuperación del pendiente aprobados. El envío al servidor se simuló; no se usaron credenciales reales.
+- Pruebas de idempotencia: un reintento no duplica el vehículo, la novedad asociada ni la auditoría; conserva las horas del dispositivo. No permite sobrescribir un registro mediante el identificador de otro usuario.
+- `android:sync`: TypeScript, Vite y sincronización Capacitor aprobados, con origen API HTTPS configurado.
+- Android Gradle 8.14.3 y JDK 21: `assembleDebug` aprobado. APK `com.cerritoshome.app`, versión 0.4.0, código 4, SDK mínimo 24 y objetivo 36.
+- `apksigner verify`: firma v2 aprobada. Es una APK de depuración, no una distribución de Google Play.
+- Recursos APK: se verificó que contiene la interfaz, la cola offline y el origen `https://mac-mini.tail653cc7.ts.net`.
+- `npm audit`: cero vulnerabilidades reportadas en la revisión. Esto no acredita seguridad completa del despliegue.
 - `git diff --check`: aprobado.
 
-Se preparó `npm run test:firebase` para verificar las reglas reales y conflictos concurrentes contra el emulador. **No pudo ejecutarse aquí:** falló la descarga del JAR de Firestore desde Google. Las 37 pruebas locales no sustituyen esa verificación de Firestore real.
+No se ha verificado esta APK en un teléfono físico. Tampoco se usó una cuenta real para verificar la caché Firestore en modo avión ni la sincronización con el Mac del usuario. Las reglas Firestore y las transacciones en el emulador siguen pendientes de esa prueba: su descarga estuvo bloqueada en este entorno. Las reglas existentes no requieren cambios para la cola local; todas las escrituras de sincronización siguen pasando por la API.
 
-Pendiente: crear Firebase, publicar reglas, configurar credencial privada en el Mac, comprobar envío del enlace de contraseña y autenticar cuentas reales, ejecutar la prueba de emulador, validar Tailscale y probar dos dispositivos. El APK 0.3.0 no se compiló ni se probó en un teléfono físico.
-
-Sigue [PRODUCTION.md](PRODUCTION.md) antes de utilizar datos reales. No se usa Cloud Functions ni SMTP propio y no se habilitó facturación Blaze.
+Sigue [OFFLINE.md](OFFLINE.md): actualiza y reinicia primero el servidor del Mac, habilita el origen Android y verifica un teléfono en modo avión antes de usar datos reales. No borres almacenamiento ni desinstales mientras existan pendientes.

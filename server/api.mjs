@@ -9,7 +9,7 @@ export function apiHandler({db,identity,allowedOrigins}) {
   response.setHeader('Content-Type','application/json; charset=utf-8');response.setHeader('Cache-Control','no-store');
   const reply=(status,data)=>{response.writeHead(status);response.end(JSON.stringify(data));};
   const origin=request.headers.origin;
-  if(origin&&!allowedOrigins.includes(origin)){reply(403,{error:'not_authorized'});return true;}
+  if(origin&&!allowedOrigins.includes(origin)){reply(403,{error:'origin_not_allowed'});return true;}
   if(origin){response.setHeader('Access-Control-Allow-Origin',origin);response.setHeader('Vary','Origin');}
   if(request.method==='OPTIONS'){response.setHeader('Access-Control-Allow-Headers','authorization, content-type');response.setHeader('Access-Control-Allow-Methods','GET, POST, OPTIONS');reply(204,null);return true;}
   try{
@@ -18,6 +18,7 @@ export function apiHandler({db,identity,allowedOrigins}) {
    let rate=rates.get(user.uid);if(!rate||rate.until<Date.now()){rate={count:0,until:Date.now()+60_000};rates.set(user.uid,rate);}if(++rate.count>100)throw new OperationError('rate_limited',429);
    const member=(await db.doc(`members/${user.uid}`).get()).data();
    if(!member?.active||!['admin','guard'].includes(member.role))throw new OperationError('not_authorized',403);
+   if(url.pathname==='/api/sync-status'&&request.method==='GET'){reply(200,{offlineProtocol:1});return true;}
    if(url.pathname==='/api/users'&&request.method==='GET'){
     if(member.role!=='admin')throw new OperationError('not_authorized',403);
     const users=await db.collection('members').orderBy('name').get();reply(200,users.docs.map(row=>({...row.data(),id:row.id})));return true;

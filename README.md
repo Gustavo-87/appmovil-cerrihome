@@ -1,6 +1,6 @@
 # Cerritos Home
 
-Versión **0.3.0**, para portería y administración del conjunto. React, TypeScript, Vite y Android con Capacitor.
+Versión **0.4.0**, para portería y administración del conjunto. React, TypeScript, Vite y Android con Capacitor.
 
 ## Funciones
 
@@ -9,10 +9,10 @@ Versión **0.3.0**, para portería y administración del conjunto. React, TypeSc
 - Novedades y resolución.
 - Firebase Authentication: correo y contraseña, establecimiento inicial y recuperación.
 - Administración: creación de cuentas, asignación de los dos roles y desactivación.
-- Firestore: información compartida en vivo, reglas de lectura y escrituras validadas en el Mac mediante transacciones.
+- Firestore: información compartida en vivo y caché persistente. Android guarda operaciones pendientes en IndexedDB y las sincroniza con el Mac mediante transacciones idempotentes.
 - Tema claro/oscuro y exportación CSV administrativa.
 
-La migración a Firebase reemplaza Supabase. No hay acceso para residentes ni editor de roles personalizados. Las reservas locales antiguas de BBQ se convierten a Golfito al leerlas; no se importan automáticamente a Firestore.
+Incluye modo sin conexión para Android: consulta los datos descargados y guarda reservas, vehículos y novedades localmente. El primer ingreso requiere Internet y las reservas pendientes no se confirman hasta sincronizar. Sigue [OFFLINE.md](docs/OFFLINE.md). La migración a Firebase reemplaza Supabase. No hay acceso para residentes ni editor de roles personalizados. Las reservas locales antiguas de BBQ se convierten a Golfito al leerlas; no se importan automáticamente a Firestore.
 
 ## Activación en Firebase gratuito y Mac mini
 
@@ -33,7 +33,7 @@ npm run build:production
 npm run serve
 ```
 
-El primer administrador requiere `ADMIN_EMAIL` y `ADMIN_NAME`; consulta la guía antes de ejecutarlo. El servidor web y API escucha en `127.0.0.1:4173`; Tailscale Serve proporciona HTTPS. El Mac debe permanecer encendido para guardar datos y administrar cuentas. `npm run prepare:mac` genera un LaunchAgent para revisar e instalar.
+El primer administrador requiere `ADMIN_EMAIL` y `ADMIN_NAME`; consulta la guía antes de ejecutarlo. El servidor web y API escucha en `127.0.0.1:4173`; Tailscale Serve proporciona HTTPS. El Mac debe estar disponible para sincronizar y administrar cuentas; Android puede guardar registros pendientes sin conexión. `npm run prepare:mac` genera un LaunchAgent para revisar e instalar.
 
 ## Desarrollo y pruebas
 
@@ -75,7 +75,7 @@ npm run android:open
 npm run android:apk
 ```
 
-APK de pruebas: `artifacts/cerritos-home-0.3.0-debug.apk`. Es de depuración; esta versión todavía requiere validación física y preparación de firma de distribución.
+APK de pruebas: `artifacts/cerritos-home-0.4.0-debug.apk`. Es de depuración; esta versión todavía requiere validación física y preparación de firma de distribución.
 
 ## Archivos principales
 

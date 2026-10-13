@@ -1,10 +1,10 @@
-# Activación 0.3.0: Firebase gratuito, Mac mini y Tailscale
+# Activación 0.4.0: Firebase gratuito, Mac mini y Tailscale
 
 La aplicación usa **Firebase Authentication (correo y contraseña)** y **Cloud Firestore**, con los roles de Portería y Administrador. Los espacios son Salón social, Gimnasio y Golfito. Todavía debes crear el proyecto y comprobar el servicio real antes de ingresar datos operativos.
 
 La web y la API funcionan en el Mac mini. Tailscale Serve proporciona HTTPS privado. El navegador lee datos autorizados de Firestore en tiempo real; las escrituras pasan por la API del Mac, que verifica el token de Firebase y el miembro activo dentro de transacciones. Así evita cruces de reservas, placas activas duplicadas y la eliminación del último administrador activo.
 
-No se utilizan Cloud Functions, Firebase Hosting, Storage ni servicios de SMS. La cuenta de Firebase permanece en **Spark**, sin habilitar Blaze. El Mac debe estar encendido para guardar operaciones y gestionar cuentas. Los dispositivos web deben tener Tailscale y permiso para alcanzar el Mac; una cuenta de la app no concede acceso a la tailnet.
+No se utilizan Cloud Functions, Firebase Hosting, Storage ni servicios de SMS. La cuenta de Firebase permanece en **Spark**, sin habilitar Blaze. El Mac debe estar encendido para sincronizar operaciones y gestionar cuentas. Android puede guardar registros localmente cuando no alcanza el servidor; consulta [OFFLINE.md](OFFLINE.md). Los dispositivos web deben tener Tailscale y permiso para alcanzar el Mac; una cuenta de la app no concede acceso a la tailnet.
 
 ## 1. Crear Firebase y Firestore
 
@@ -144,4 +144,4 @@ Las copias de seguridad administradas y determinadas exportaciones de Google pue
 7. Desconecta el Mac: las escrituras deben fallar sin anunciarse como guardadas. Comprueba recuperación después de reiniciar el Mac.
 8. Publica y verifica las reglas; revisa cuota y auditoría. Prueba un respaldo y un procedimiento de restauración en un proyecto de prueba.
 
-La app requiere Internet y conexión al Mac para guardar operaciones; no implementa escritura sin conexión. Esta sesión no tiene acceso a tu cuenta de Firebase ni al Mac. Las pruebas locales no acreditan por sí solas el despliegue real.
+Android conserva la interfaz instalada, la sesión preparada, los datos descargados y los registros locales cuando no hay conexión. El primer acceso, la recuperación de contraseña, la gestión de cuentas y la sincronización requieren conexión. Las reservas pendientes requieren validación del servidor y pueden rechazarse por conflictos o fechas ya transcurridas. Esta sesión no tiene acceso a tu cuenta de Firebase ni al Mac. Las pruebas locales no acreditan por sí solas el despliegue real.

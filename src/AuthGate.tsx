@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut as firebaseSignOut, type User } from 'firebase/auth';
-import { auth, backendError, demoMode, watchProfile } from './backend';
+import { auth, backendError, demoMode, getQueue, watchProfile } from './backend';
 import type { Profile } from './permissions';
 import App from './App';
 import { useTheme } from './useTheme';
@@ -29,12 +29,14 @@ export default function AuthGate() {
     }, e => { setProfile(null); setLoading(false); setError(backendError(e)); });
   }, [session]);
   async function signOut() {
+    if(session){const pending=await getQueue(session.uid);if(pending.some(entry=>entry.status!=='confirmed')&&!window.confirm('Hay registros pendientes en este teléfono. Se conservarán y solo podrán sincronizarse al volver a ingresar con esta cuenta. ¿Cerrar sesión?'))return;}
     setProfile(null); setPassword('');
     try { if (auth) await firebaseSignOut(auth); setError(''); setNotice(''); }
     catch { setError('No se pudo cerrar la sesión. Intenta nuevamente.'); }
   }
   async function login(e: FormEvent) {
     e.preventDefault(); if (!auth || lock.current) return;
+    if(!navigator.onLine){setError('El primer ingreso y la recuperación de contraseña requieren Internet. Conserva tu sesión para trabajar sin conexión.');return;}
     lock.current = true; setBusy(true); setError(''); setNotice('');
     try { await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password); setPassword(''); }
     catch { setError('No se pudo ingresar. Revisa el correo y la contraseña, o solicita un enlace para establecerla.'); }
@@ -43,6 +45,7 @@ export default function AuthGate() {
   async function resetPassword() {
     if (!auth || lock.current) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError('Ingresa primero tu correo electrónico.'); return; }
+    if(!navigator.onLine){setError('El primer ingreso y la recuperación de contraseña requieren Internet. Conserva tu sesión para trabajar sin conexión.');return;}
     lock.current = true; setBusy(true); setError(''); setNotice('');
     try { await sendPasswordResetEmail(auth, email.trim().toLowerCase()); setNotice('Si el correo tiene una cuenta, recibirás un enlace para establecer tu contraseña.'); }
     catch { setError('No se pudo solicitar el enlace. Espera un momento e intenta nuevamente.'); }

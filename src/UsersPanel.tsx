@@ -23,6 +23,7 @@ export default function UsersPanel({ profile, demo }: { profile: Profile; demo: 
 
   async function perform(action: () => Promise<unknown>) {
     if (lock.current) return;
+    if(!navigator.onLine){setError('La gestión de cuentas requiere conexión con el servidor.');return;}
     lock.current = true; setBusy(true); setError(''); setNotice('');
     try { await action(); await refresh(); if (mounted.current) { setNotice('Acceso actualizado correctamente.'); window.dispatchEvent(new Event('cerritos-access-changed')); } }
     catch (e) { if (mounted.current) setError(backendError(e)); }

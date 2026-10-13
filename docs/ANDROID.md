@@ -1,10 +1,10 @@
 # Pruebas de Cerritos Home en Android
 
-La aplicación incluye la interfaz dentro del APK y conecta directamente a Firebase para autenticación y lecturas compartidas, y a la API del Mac para guardar operaciones. Requiere Internet para operar; no necesita Vite, pero necesita alcanzar el Mac por Tailscale para escribir datos. Configura primero el proyecto real según [la guía de producción](PRODUCTION.md), incluidos Firebase, `VITE_API_ORIGIN` con el HTTPS del Mac y el origen Android en `ALLOWED_ORIGINS` del servidor. Sin configuración no permite ingresar.
+La aplicación incluye la interfaz dentro del APK y conecta directamente a Firebase para autenticación y lecturas compartidas, y a la API del Mac para guardar operaciones. Después del primer acceso permite consultas y registros locales sin Internet; no necesita Vite, pero necesita alcanzar el Mac por Tailscale para escribir datos. Configura primero el proyecto real según [la guía de producción](PRODUCTION.md), incluidos Firebase, `VITE_API_ORIGIN` con el HTTPS del Mac y el origen Android en `ALLOWED_ORIGINS` del servidor. Sin configuración no permite ingresar. Sigue el recorrido de [OFFLINE.md](OFFLINE.md) para preparar y probar el teléfono.
 
 ## Instalar el APK de pruebas
 
-1. Descarga el archivo `cerritos-home-0.3.0-debug.apk` generado en `artifacts/` y transfiérelo al teléfono por USB, o descárgalo directamente desde el teléfono si tienes acceso al archivo.
+1. Descarga el archivo `cerritos-home-0.4.0-debug.apk` generado en `artifacts/` y transfiérelo al teléfono por USB, o descárgalo directamente desde el teléfono si tienes acceso al archivo.
 2. Abre el archivo en Android. Cuando el sistema lo solicite, permite **Instalar aplicaciones desconocidas** únicamente para la aplicación que estás utilizando para abrirlo (por ejemplo, Archivos).
 3. Instala y abre **Cerritos Home**. Puedes desactivar ese permiso después de la instalación.
 4. Entra con un correo autorizado por administración y su contraseña. Prueba inicialmente con datos ficticios: los registros se guardan en la base de datos compartida.
@@ -61,15 +61,15 @@ El script también intenta detectar estas rutas automáticamente. Si instalaste 
 
 Resultados:
 
-- `artifacts/cerritos-home-0.3.0-debug.apk`
-- `artifacts/cerritos-home-0.3.0-debug.apk.sha256`
+- `artifacts/cerritos-home-0.4.0-debug.apk`
+- `artifacts/cerritos-home-0.4.0-debug.apk.sha256`
 - Original de Gradle: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 Para instalar por USB desde Terminal, con el teléfono autorizado:
 
 ```bash
 "$ANDROID_HOME/platform-tools/adb" devices
-"$ANDROID_HOME/platform-tools/adb" install -r artifacts/cerritos-home-0.3.0-debug.apk
+"$ANDROID_HOME/platform-tools/adb" install -r artifacts/cerritos-home-0.4.0-debug.apk
 ```
 
 `-r` solicita una actualización conservando datos cuando la firma y la versión son compatibles. Si falla, lee el error antes de intentar una desinstalación.
@@ -83,14 +83,14 @@ Para instalar por USB desde Terminal, con el teléfono autorizado:
 5. **Persistencia:** cambia el tema, cierra la app y ábrela otra vez; verifica la sesión, la consulta de datos compartidos y la apariencia seleccionada.
 6. **Botón Atrás:** cierra primero un formulario o el menú, regresa a Inicio desde otra sección y minimiza la app si ya está en Inicio.
 7. **Pantalla y teclado:** prueba un teléfono pequeño, ambos temas, orientación horizontal, formularios con teclado abierto y navegación por gestos. Revisa que los controles no queden detrás de las barras del sistema.
-8. **Conexión:** verifica que los cambios aparezcan en otro equipo autorizado. En modo avión, una operación no debe anunciarse como guardada. Esta versión no incluye operaciones sin conexión.
+8. **Conexión:** verifica que los cambios aparezcan en otro equipo autorizado. En modo avión, una operación no debe anunciarse como guardada. Activa modo avión, registra un vehículo y una novedad, cierra/reabre y verifica los pendientes. Al reconectar, comprueba sincronización sin duplicados. Las reservas pendientes no están confirmadas y pueden rechazarse por conflicto.
 
 Registrar modelo de teléfono, versión de Android y de Android System WebView al reportar un problema. Usa un WebView actualizado. El mínimo configurado es Android 7/API 24, aunque se recomienda probar primero en Android 10 o posterior.
 
 ## Configuración técnica
 
 - Capacitor 8.5.2; aplicación `com.cerritoshome.app`.
-- `versionName`: `0.3.0`; `versionCode`: `3`.
+- `versionName`: `0.4.0`; `versionCode`: `4`.
 - SDK de compilación/objetivo: 36; mínimo: 24.
 - Gradle 8.14.3 con SHA256 oficial fijado; Android Gradle Plugin 8.13.0.
 - Los plugins `App`, `Filesystem` y `Share` gestionan el botón Atrás y el CSV nativo. `SystemBars`, incluido en Capacitor, adapta las barras del sistema al tema y los márgenes seguros.

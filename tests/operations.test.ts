@@ -93,3 +93,34 @@ describe('Operaciones y autorización en el servidor',()=>{
     expect([...db.rows.entries()].find(([k,v])=>k.startsWith('audit_log/')&&v.recordId===id)?.[1].actorId).toBe('guard');
   });
 });
+
+describe('Reintentos de registros sin conexión',()=>{
+ it('una respuesta perdida no duplica el vehículo ni la auditoría',async()=>{
+  const id='00000000-0000-4000-8000-000000000010';
+  const p={p_plate:'ABC123',p_driver:'Ana',p_unit:'Casa 1',p_reason:'Visita',p_note:'Rayón',_requestId:id,_occurredAt:'2026-10-13T11:30:00Z'};
+  const first=await run('guard','enter_vehicle',p);const count=db.rows.size;
+  expect(await run('guard','enter_vehicle',p)).toBe(first);expect(db.rows.size).toBe(count);
+  expect(Date.parse(db.rows.get(`vehicles/${id}`).entered)).toBe(Date.parse(p._occurredAt));
+  expect(db.rows.get(`incidents/${id}-note`).vehicleId).toBe(id);
+ });
+ it('conserva la hora local de una salida y rechaza reutilizar una petición con otros datos',async()=>{
+  const id='00000000-0000-4000-8000-000000000011';
+  await run('guard','enter_vehicle',{p_plate:'ABC123',p_driver:'Ana',p_unit:'Casa 1',p_reason:'Visita',_requestId:id,_occurredAt:'2026-10-13T11:00:00Z'});
+  await run('guard','exit_vehicle',{p_id:id,_requestId:'00000000-0000-4000-8000-000000000012',_occurredAt:'2026-10-13T11:30:00Z'});
+  expect(db.rows.get(`vehicles/${id}`).exited).toBe('2026-10-13T11:30:00.000Z');
+  await expect(run('guard','enter_vehicle',{p_plate:'OTHER01',p_driver:'Ana',p_unit:'Casa 1',p_reason:'Visita',_requestId:id})).rejects.toMatchObject({code:'invalid_input'});
+ });
+ it('una reserva sincronizada sigue siendo idempotente y nunca permite un cruce',async()=>{
+  const p={...draft,_requestId:'00000000-0000-4000-8000-000000000013',_occurredAt:'2026-10-13T11:00:00Z'};
+  expect(await run('guard','create_reservation',p)).toBe(p._requestId);
+  expect(await run('guard','create_reservation',p)).toBe(p._requestId);
+  await expect(run('admin','create_reservation',{...draft,_requestId:'00000000-0000-4000-8000-000000000014'})).rejects.toMatchObject({code:'reservation_conflict'});
+ });
+});
+
+it('un identificador de otro usuario no puede sobrescribir un registro existente',async()=>{
+ const id='00000000-0000-4000-8000-000000000020';
+ await run('guard','enter_vehicle',{p_plate:'ABC123',p_driver:'Ana',p_unit:'Casa 1',p_reason:'Visita',_requestId:id});
+ await expect(run('admin','enter_vehicle',{p_plate:'OTHER01',p_driver:'Otro',p_unit:'Casa 2',p_reason:'Visita',_requestId:id})).rejects.toMatchObject({code:'invalid_input'});
+ expect(db.rows.get(`vehicles/${id}`).plate).toBe('ABC123');expect(db.rows.has('active_plates/OTHER01')).toBe(false);
+});

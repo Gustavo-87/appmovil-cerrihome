@@ -1,17 +1,17 @@
 # Pruebas de Cerritos Home en Android
 
-La aplicación Android incluye los archivos web dentro del APK: no necesita mantener encendido el Mac ni ejecutar Vite para abrirse. Es un prototipo local, con reservas, vehículos, novedades y modo oscuro. Aún no comparte información entre teléfonos y no incluye cuentas de usuarios.
+La aplicación incluye la interfaz dentro del APK y conecta directamente a Firebase para autenticación y lecturas compartidas, y a la API del Mac para guardar operaciones. Requiere Internet para operar; no necesita Vite, pero necesita alcanzar el Mac por Tailscale para escribir datos. Configura primero el proyecto real según [la guía de producción](PRODUCTION.md), incluidos Firebase, `VITE_API_ORIGIN` con el HTTPS del Mac y el origen Android en `ALLOWED_ORIGINS` del servidor. Sin configuración no permite ingresar.
 
 ## Instalar el APK de pruebas
 
-1. Descarga el archivo `cerritos-home-0.1.0-debug.apk` generado en `artifacts/` y transfiérelo al teléfono por USB, o descárgalo directamente desde el teléfono si tienes acceso al archivo.
+1. Descarga el archivo `cerritos-home-0.3.0-debug.apk` generado en `artifacts/` y transfiérelo al teléfono por USB, o descárgalo directamente desde el teléfono si tienes acceso al archivo.
 2. Abre el archivo en Android. Cuando el sistema lo solicite, permite **Instalar aplicaciones desconocidas** únicamente para la aplicación que estás utilizando para abrirlo (por ejemplo, Archivos).
 3. Instala y abre **Cerritos Home**. Puedes desactivar ese permiso después de la instalación.
-4. Prueba con datos ficticios. Cada instalación tiene su propio almacenamiento y empieza con una demostración.
+4. Entra con un correo autorizado por administración y su contraseña. Prueba inicialmente con datos ficticios: los registros se guardan en la base de datos compartida.
 
 El APK es de depuración, firmado automáticamente con una clave de desarrollo. No es una versión publicada en Google Play ni una firma de producción. El archivo `.sha256` permite comprobar que el APK no cambió durante la transferencia.
 
-Una actualización mantiene los datos únicamente si conserva el mismo identificador de aplicación, una versión compatible y la misma firma. Si Android muestra un conflicto de firma al cambiar entre APK generado aquí y APK generado en tu Mac, ambas máquinas usan claves de desarrollo diferentes. No desinstales una versión con datos que necesites conservar: desinstalar borra el almacenamiento local. La exportación CSV solo contiene las reservas, no es una copia completa de vehículos y novedades.
+Una actualización mantiene los datos únicamente si conserva el mismo identificador de aplicación, una versión compatible y la misma firma. Si Android muestra un conflicto de firma al cambiar entre APK generado aquí y APK generado en tu Mac, ambas máquinas usan claves de desarrollo diferentes. No desinstales una versión con datos que necesites conservar: desinstalar borra el almacenamiento local. La exportación CSV solo contiene las reservas; el respaldo completo se gestiona en Firestore.
 
 ## Preparar el Mac
 
@@ -33,7 +33,7 @@ npm run android:open
 
 `android:sync` compila la web y actualiza los archivos y plugins del proyecto Android. `android:open` abre la carpeta `android/` en Android Studio. La primera sincronización de Gradle descarga herramientas y dependencias; necesita Internet.
 
-Si Android Studio solicita una ubicación de SDK o JDK, configura la que acabas de instalar. En **Settings → Build, Execution, Deployment → Build Tools → Gradle**, revisa **Gradle JDK**. No es necesario añadir claves de Firebase ni configurar servicios de Google para esta versión.
+Si Android Studio solicita una ubicación de SDK o JDK, configura la que acabas de instalar. En **Settings → Build, Execution, Deployment → Build Tools → Gradle**, revisa **Gradle JDK**. Configura `.env.local` con Firestore antes de sincronizar. Configura los valores públicos de Firebase y la dirección HTTPS de la API del Mac. La credencial privada de servidor nunca debe estar en el APK.
 
 ## Ejecutar en tu teléfono desde Android Studio
 
@@ -61,15 +61,15 @@ El script también intenta detectar estas rutas automáticamente. Si instalaste 
 
 Resultados:
 
-- `artifacts/cerritos-home-0.1.0-debug.apk`
-- `artifacts/cerritos-home-0.1.0-debug.apk.sha256`
+- `artifacts/cerritos-home-0.3.0-debug.apk`
+- `artifacts/cerritos-home-0.3.0-debug.apk.sha256`
 - Original de Gradle: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 Para instalar por USB desde Terminal, con el teléfono autorizado:
 
 ```bash
 "$ANDROID_HOME/platform-tools/adb" devices
-"$ANDROID_HOME/platform-tools/adb" install -r artifacts/cerritos-home-0.1.0-debug.apk
+"$ANDROID_HOME/platform-tools/adb" install -r artifacts/cerritos-home-0.3.0-debug.apk
 ```
 
 `-r` solicita una actualización conservando datos cuando la firma y la versión son compatibles. Si falla, lee el error antes de intentar una desinstalación.
@@ -80,22 +80,22 @@ Para instalar por USB desde Terminal, con el teléfono autorizado:
 2. **Vehículos:** registra una placa, comprueba que no admite un segundo ingreso activo y registra la salida.
 3. **Novedades:** registra una observación ligada a la placa y márcala como resuelta.
 4. **Administración:** busca un residente y exporta las reservas. Android abre el menú del sistema para compartir el CSV. Cancelar ese menú no debe mostrarse como una exportación exitosa.
-5. **Persistencia:** cambia el tema, cierra la aplicación y ábrela otra vez; verifica los datos y la apariencia seleccionada.
+5. **Persistencia:** cambia el tema, cierra la app y ábrela otra vez; verifica la sesión, la consulta de datos compartidos y la apariencia seleccionada.
 6. **Botón Atrás:** cierra primero un formulario o el menú, regresa a Inicio desde otra sección y minimiza la app si ya está en Inicio.
 7. **Pantalla y teclado:** prueba un teléfono pequeño, ambos temas, orientación horizontal, formularios con teclado abierto y navegación por gestos. Revisa que los controles no queden detrás de las barras del sistema.
-8. **Sin conexión:** activa modo avión después de instalarla y verifica los flujos locales. Esto no demuestra sincronización; esa capacidad aún no existe.
+8. **Conexión:** verifica que los cambios aparezcan en otro equipo autorizado. En modo avión, una operación no debe anunciarse como guardada. Esta versión no incluye operaciones sin conexión.
 
 Registrar modelo de teléfono, versión de Android y de Android System WebView al reportar un problema. Usa un WebView actualizado. El mínimo configurado es Android 7/API 24, aunque se recomienda probar primero en Android 10 o posterior.
 
 ## Configuración técnica
 
 - Capacitor 8.5.2; aplicación `com.cerritoshome.app`.
-- `versionName`: `0.1.0`; `versionCode`: `1`.
+- `versionName`: `0.3.0`; `versionCode`: `3`.
 - SDK de compilación/objetivo: 36; mínimo: 24.
 - Gradle 8.14.3 con SHA256 oficial fijado; Android Gradle Plugin 8.13.0.
 - Los plugins `App`, `Filesystem` y `Share` gestionan el botón Atrás y el CSV nativo. `SystemBars`, incluido en Capacitor, adapta las barras del sistema al tema y los márgenes seguros.
 - CSV temporal en caché privada y acceso compartido únicamente al directorio de reportes. No se solicitan permisos generales de archivos, cámara ni ubicación.
-- Copias automáticas de Android desactivadas para este prototipo. Los datos locales no sustituyen una base de datos ni un respaldo.
+- Copias automáticas Android desactivadas. Los registros operativos están en Firestore; configura sus respaldos y verifica restauración.
 - APK, cachés, archivos `local.properties` y claves de firma no se versionan. No se configura `server.url`: el APK contiene su propia interfaz.
 
-Las pruebas de navegador y los tests automatizados no sustituyen la validación física del teclado, gestos, botón Atrás y menú de compartir. La publicación en Google Play y la conexión del backend son etapas posteriores.
+Las pruebas de navegador y los tests automatizados no sustituyen la validación física del teclado, gestos, botón Atrás y menú de compartir. La publicación en Google Play y la firma de distribución son etapas posteriores. La configuración real de Firebase y acceso al Mac debe verificarse antes del uso operativo.

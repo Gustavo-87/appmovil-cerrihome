@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn() { return request.auth != null; }
+  function member() { return get(/databases/$(database)/documents/members/$(request.auth.uid)).data; }
+  function staff() { return signedIn() && member().active == true && member().role in ['admin', 'guard']; }
+  function admin() { return staff() && member().role == 'admin'; }
+  match /members/{uid} { allow read: if signedIn() && (request.auth.uid == uid || admin()); allow write: if false; }
+  match /reservations/{id} { allow read: if staff(); allow write: if false; }
+  match /vehicles/{id} { allow read: if staff(); allow write: if false; }
+  match /incidents/{id} { allow read: if staff(); allow write: if false; }
+  match /audit_log/{id} { allow read: if admin(); allow write: if false; }
+  match /{document=**} { allow read, write: if false; }
+ }
+}

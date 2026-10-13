@@ -1,6 +1,6 @@
 {
   "name": "cerritos-home",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,15 @@
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
     "android:run": "npm run android:sync && cap run android",
-    "android:apk": "npm run android:sync && node scripts/build-android.mjs"
+    "android:apk": "npm run android:sync && node scripts/build-android.mjs",
+    "build:production": "node scripts/build-production.mjs",
+    "serve": "node scripts/serve.mjs",
+    "prepare:mac": "node scripts/prepare-mac.mjs",
+    "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "test:auth": "vitest run tests/auth.test.tsx",
+    "test:server": "node tests/server.cjs",
+    "test:firebase": "npx firebase-tools emulators:exec --project demo-cerritos --only firestore \"node tests/firestore-integration.mjs\"",
+    "backup": "node scripts/backup-firestore.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",
@@ -22,18 +30,26 @@
     "@capacitor/share": "8.0.3",
     "@fontsource-variable/dm-sans": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
+    "firebase": "13.0.0",
+    "firebase-admin": "14.5.0",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2",
+    "@firebase/rules-unit-testing": "6.0.0",
+    "@testing-library/react": "16.3.3",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "30.1.2",
     "playwright": "^1.58.2",
     "typescript": "~5.7.2",
     "vite": "^6.1.0",
     "vitest": "^3.0.5"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.6"
   }
 }

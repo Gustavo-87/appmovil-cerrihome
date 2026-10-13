@@ -1,3 +1,3 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-export default defineConfig({ plugins: [react()] });
+export default defineConfig({ plugins: [react()], server: { proxy: { '/api': 'http://127.0.0.1:4173' } }, build: { rollupOptions: { output: { manualChunks(id) { if(id.includes('node_modules/@firebase/firestore'))return 'firebase-firestore'; if(id.includes('node_modules/@firebase/auth'))return 'firebase-auth'; } } } } });

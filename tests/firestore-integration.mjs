@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { executeOperation } from '../server/operations.mjs';
+if(!process.env.FIRESTORE_EMULATOR_HOST)throw new Error('Ejecuta mediante npm run test:firebase; no uses una base real.');
+const projectId='demo-cerritos';
+const env=await initializeTestEnvironment({projectId,firestore:{rules:readFileSync('firebase/firestore.rules','utf8')}});
+const adminDb=getFirestore(initializeApp({projectId},'integration-test'));
+try{
+ await env.clearFirestore();
+ await adminDb.doc('members/admin').set({id:'admin',name:'Admin',email:'admin@example.com',role:'admin',active:true});
+ await adminDb.doc('members/guard').set({id:'guard',name:'Guard',email:'guard@example.com',role:'guard',active:true});
+ await adminDb.doc('system/admins').set({count:1});
+ const p={p_resident:'Ana',p_unit:'Casa 1',p_area:'Golfito',p_date:'2099-01-01',p_start:'10:00',p_end:'11:00',p_notes:''};
+ const results=await Promise.allSettled([executeOperation(adminDb,'guard','create_reservation',p),executeOperation(adminDb,'admin','create_reservation',{...p,p_start:'10:30',p_end:'11:30'})]);
+ assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+ const reservationId=results.find(r=>r.status==='fulfilled').value;
+ assert.equal(results.find(r=>r.status==='rejected').reason.code,'reservation_conflict');
+ const guard=env.authenticatedContext('guard').firestore(),admin=env.authenticatedContext('admin').firestore(),anonymous=env.unauthenticatedContext().firestore(),outsider=env.authenticatedContext('outsider').firestore();
+ await assertSucceeds(getDoc(doc(guard,'reservations',reservationId)));
+ await assertFails(getDoc(doc(anonymous,'reservations',reservationId)));
+ await assertFails(getDoc(doc(outsider,'reservations',reservationId)));
+ await assertFails(setDoc(doc(guard,'members','guard'),{role:'admin'}));
+ await assertFails(setDoc(doc(admin,'reservations','forged'),{area:'Golfito'}));
+ await assertFails(getDocs(collection(guard,'audit_log')));
+ await assertSucceeds(getDocs(collection(admin,'audit_log')));
+ await assertFails(getDoc(doc(guard,'system','admins')));
+ await executeOperation(adminDb,'admin','authorize_member',{p_id:'guard',p_email:'guard@example.com',p_name:'Guard',p_role:'guard',p_active:false});
+ await assertFails(getDoc(doc(guard,'reservations',reservationId)));
+ await assert.rejects(executeOperation(adminDb,'guard','create_reservation',p),e=>e.code==='not_authorized');
+ await assert.rejects(executeOperation(adminDb,'admin','authorize_member',{p_id:'admin',p_email:'admin@example.com',p_name:'Admin',p_role:'guard',p_active:true}),e=>e.code==='last_admin');
+ console.log('PASS: reglas Firestore reales, escrituras directas denegadas, roles, revocación y conflictos concurrentes en transacciones');
+}finally{await env.cleanup();await adminDb.terminate();}

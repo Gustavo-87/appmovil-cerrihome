@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { reservationError, vehicleError, today, shiftDate, type Reservation } from './domain';
-const draft = {resident:'Ana',unit:'Casa 1',area:'Zona BBQ' as const,date:today(),start:'10:00',end:'12:00',notes:''};
+const draft = {resident:'Ana',unit:'Casa 1',area:'Golfito' as const,date:today(),start:'10:00',end:'12:00',notes:''};
 const booked: Reservation = {...draft,id:'1',cancelled:false};
 describe('Reservas', () => {
   it('rechaza solapamientos parciales y totales', () => {
@@ -29,5 +29,16 @@ describe('Control vehicular', () => {
   it('valida placa y destino', () => {
     expect(vehicleError('!','Ana','Casa 1',[])).not.toBe('');
     expect(vehicleError('ABC123','Ana','',[])).not.toBe('');
+  });
+});
+
+describe('Compatibilidad de reservas locales', () => {
+  it('convierte la antigua zona BBQ a Golfito sin perder los datos', async () => {
+    const { loadData } = await import('./domain');
+    const { vi } = await import('vitest');
+    const old = { reservations: [{ ...draft, area:'Zona BBQ', id:'old', cancelled:false }], vehicles:[], incidents:[] };
+    vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(old) });
+    try { const result=loadData();expect(result.error).toBe('');expect(result.data.reservations[0]).toMatchObject({id:'old',area:'Golfito',resident:'Ana'}); }
+    finally { vi.unstubAllGlobals(); }
   });
 });

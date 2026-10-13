@@ -19,7 +19,7 @@ require('node:fs').mkdirSync('/tmp/cerritos-validation',{recursive:true});
   await page.screenshot({path:'/tmp/cerritos-validation/desktop-dark.png',fullPage:true});
   await page.getByRole('button',{name:'Nueva reserva',exact:true}).click();
   const dialog=page.getByRole('dialog');
-  await dialog.getByRole('button',{name:'Zona BBQ',exact:true}).click();
+  await dialog.getByRole('button',{name:'Golfito',exact:true}).click();
   await dialog.getByLabel('Nombre del residente').fill('Residente de prueba');
   await dialog.getByLabel('Casa o apartamento').fill('Casa 99');
   await dialog.getByLabel('Hora de entrada').fill('12:30');

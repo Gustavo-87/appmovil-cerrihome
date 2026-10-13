@@ -98,7 +98,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 [data-tone='green'], .green, .gym { --tint: var(--mint); --tint-text: var(--mint-text); }
 [data-tone='blue'], .blue { --tint: var(--sky); --tint-text: var(--sky-text); }
-[data-tone='orange'], .orange, .bbq { --tint: var(--peach); --tint-text: var(--peach-text); }
+[data-tone='orange'], .orange, .golfito { --tint: var(--peach); --tint-text: var(--peach-text); }
 [data-tone='purple'], .purple, .social { --tint: var(--lilac); --tint-text: var(--lilac-text); }
 
 .stat-card, .space-card {
@@ -120,7 +120,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .stat-top { color: var(--secondary); }
 .stat-foot { color: var(--secondary); }
 
-.social .space-art, .gym .space-art, .bbq .space-art {
+.social .space-art, .gym .space-art, .golfito .space-art {
   color: var(--tint-text);
   background: linear-gradient(135deg, rgb(var(--tint) / 10%), rgb(var(--tint) / 23%));
 }

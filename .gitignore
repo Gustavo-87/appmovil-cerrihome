@@ -8,3 +8,10 @@ dist/
 *.jks
 *.keystore
 artifacts/
+
+.server.env
+*-admin.json
+*-firebase-adminsdk-*.json
+.firebase/
+*-debug.log
+serviceAccount*.json

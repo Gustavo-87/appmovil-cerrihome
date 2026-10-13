@@ -3,6 +3,6 @@
     <color name="colorPrimary">#244D3F</color>
     <color name="colorPrimaryDark">#10231F</color>
     <color name="colorAccent">#9DDBB7</color>
-    <color name="launcher_background">#244D3F</color>
-    <color name="splash_background">#10231F</color>
+    <color name="launcher_background">#FFFFFF</color>
+    <color name="splash_background">#FFFFFF</color>
 </resources>

@@ -54,7 +54,7 @@ export default function AuthGate() {
   if (demoMode) return <App profile={demoProfile} onSignOut={() => location.reload()} demo />;
   if (session && profile) return <App key={`${profile.id}:${profile.role}`} profile={profile} onSignOut={signOut} demo={false}/>;
   return <main className="auth-screen"><section className="panel auth-card">
-    <img src="/icon.svg" alt="" width="64" height="64"/><button className="button secondary small auth-theme" onClick={toggleTheme}>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</button>
+    <img src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} alt="Cerritos Home" width="64" height="64"/><button className="button secondary small auth-theme" onClick={toggleTheme}>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</button>
     <span className="eyebrow">CERRITOS HOME</span><h1>{loading ? 'Verificando acceso…' : 'Bienvenido a casa'}</h1>
     {!auth ? <><p>La aplicación aún no está habilitada. Contacta a administración.</p><p className="subtle">Firebase está pendiente de configuración.</p></> : loading ? <p role="status">Estamos verificando tu sesión.</p> : session ? <><p role="alert">{error || 'Tu cuenta no tiene acceso activo.'}</p><button className="button secondary" onClick={() => void signOut()}>Cerrar sesión</button></> : <>
       <p>Ingresa con el correo y la contraseña de tu cuenta autorizada.</p>

@@ -123,7 +123,7 @@ export default function App({ profile, onSignOut, demo }: { profile: Profile; on
   return <div className="app-shell">
     {mobileNav&&<button className="nav-scrim" aria-label="Cerrar menú" onClick={()=>setMobileNav(false)}/>}
     <aside className={`sidebar ${mobileNav?'is-open':''}`}>
-      <a className="brand" href="#" onClick={e=>{e.preventDefault();go('Inicio');}}><img src="/icon.svg" alt=""/><div>Cerritos<span>HOME</span></div></a>
+      <a className="brand" href="#" onClick={e=>{e.preventDefault();go('Inicio');}}><img src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} alt="Cerritos Home"/><div>Cerritos<span>HOME</span></div></a>
       <div className="community-label">ESPACIOS QUE NOS UNEN</div>
       <div className="workspace-label">MI CONJUNTO</div>
       <nav aria-label="Navegación principal">{allowedNav.map(({name,icon:Icon})=><button key={name} onClick={()=>go(name)} className={page===name?'active':''}><Icon size={20}/><span>{name}</span>{name==='Novedades'&&pendingIncidents.length>0&&<span className="nav-count">{pendingIncidents.length}</span>}</button>)}</nav>

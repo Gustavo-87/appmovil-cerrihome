@@ -15,3 +15,7 @@ Implementación de Android sin conexión y sincronización preparada. El APK se 
 No se ha verificado esta APK en un teléfono físico. Tampoco se usó una cuenta real para verificar la caché Firestore en modo avión ni la sincronización con el Mac del usuario. Las reglas Firestore y las transacciones en el emulador siguen pendientes de esa prueba: su descarga estuvo bloqueada en este entorno. Las reglas existentes no requieren cambios para la cola local; todas las escrituras de sincronización siguen pasando por la API.
 
 Sigue [OFFLINE.md](OFFLINE.md): actualiza y reinicia primero el servidor del Mac, habilita el origen Android y verifica un teléfono en modo avión antes de usar datos reales. No borres almacenamiento ni desinstales mientras existan pendientes.
+
+## Logo 0.4.1
+
+Compilación de producción y APK debug verificadas. Chromium carga el logo claro y oscuro según la preferencia persistida. Los recursos Android incluyen variantes nocturnas y margen para el icono adaptativo. No se ha comprobado el lanzador en un teléfono físico.

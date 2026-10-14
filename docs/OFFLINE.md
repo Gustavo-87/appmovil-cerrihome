@@ -4,7 +4,7 @@ La interfaz está dentro del APK, no se descarga del Mac para abrirse. Firestore
 
 ## Preparación del teléfono (una vez con Internet)
 
-1. Instala el APK y Tailscale. Autoriza el teléfono en tu tailnet.
+1. Instala el APK. Si el Mac está publicado con Funnel, el teléfono no necesita Tailscale; sigue [la guía de acceso público](PUBLIC_ACCESS.md).
 2. Actualiza primero el servidor del Mac a 0.4.0 y reinícialo. En `.server.env`, añade el origen Android conservando los otros orígenes:
 
 ```dotenv
@@ -14,7 +14,7 @@ ALLOWED_ORIGINS=http://localhost:4173,http://127.0.0.1:4173,https://mac-mini.tai
 3. Abre la app Android e ingresa con una cuenta autorizada. Espera a que carguen reservas, vehículos y novedades. Mantén la sesión iniciada.
 4. Crea un registro de prueba conectado y comprueba que desaparece de los pendientes y aparece en la web del Mac.
 5. Activa modo avión, registra un vehículo, su salida y una novedad. Cierra y vuelve a abrir la app: deben seguir disponibles como registros locales.
-6. Desactiva modo avión, recupera Internet y Tailscale y abre la app. Pulsa **Sincronizar ahora** si lo necesitas. Comprueba los registros en el Mac y que no se duplicaron.
+6. Desactiva modo avión, recupera Internet (y Tailscale solo si el servidor sigue privado) y abre la app. Pulsa **Sincronizar ahora** si lo necesitas. Comprueba los registros en el Mac y que no se duplicaron.
 
 El primer acceso de un teléfono nuevo necesita Internet. Recuperar contraseña o cambiar de cuenta sin una sesión preparada no puede autenticarse offline.
 

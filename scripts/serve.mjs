@@ -32,5 +32,5 @@ const server = createServer(async (request, response) => {
 });
 const port = Number(process.env.PORT ?? 4173);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Puerto inválido');
-server.listen(port, '127.0.0.1', () => console.log(`Cerritos Home: http://127.0.0.1:${port} · publicar con Tailscale Serve`));
+server.listen(port, '127.0.0.1', () => console.log(`Cerritos Home: http://127.0.0.1:${port} · HTTPS privado con Serve o público con Funnel; consulta docs/PUBLIC_ACCESS.md`));
 for (const signal of ['SIGTERM','SIGINT']) process.on(signal, () => server.close(() => process.exit(0)));

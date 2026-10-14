@@ -19,3 +19,7 @@ Sigue [OFFLINE.md](OFFLINE.md): actualiza y reinicia primero el servidor del Mac
 ## Logo 0.4.1
 
 Compilación de producción y APK debug verificadas. Chromium carga el logo claro y oscuro según la preferencia persistida. Los recursos Android incluyen variantes nocturnas y margen para el icono adaptativo. No se ha comprobado el lanzador en un teléfono físico.
+
+## Sincronización y acceso público 0.4.2
+
+51 pruebas pasan, incluyendo el resultado visible de sincronización cuando el servidor no es accesible y cuando no quedan pendientes. La APK conserva el identificador de aplicación, IndexedDB y URL existente. Funnel requiere activación en el Mac del usuario: no se ha verificado un acceso público real desde este entorno.

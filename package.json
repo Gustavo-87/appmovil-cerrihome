@@ -1,6 +1,6 @@
 {
   "name": "cerritos-home",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -57,5 +57,10 @@
     "xcode": {
       "uuid": "11.1.1"
     }
+  },
+  "allowScripts": {
+    "@firebase/util@1.15.3": true,
+    "esbuild@0.25.12": true,
+    "protobufjs@7.6.6": true
   }
 }

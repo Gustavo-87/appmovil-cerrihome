@@ -38,7 +38,7 @@ export function projectQueue(base: Data,queue: QueuedOperation[]): Data {
   for(const entry of queue){
     if(entry.status==='failed'||reconciled(entry,base))continue;
     const p=entry.args,syncStatus=entry.status==='pending'?'pending' as const:undefined;
-    if(entry.name==='create_reservation'&&!data.reservations.some(r=>r.id===entry.id))data.reservations.push({id:entry.id,ownerId:entry.uid,resident:String(p.p_resident),unit:String(p.p_unit),area:p.p_area as Area,date:String(p.p_date),start:String(p.p_start),end:String(p.p_end),notes:String(p.p_notes??''),cancelled:false,syncStatus});
+    if(entry.name==='create_reservation'&&!data.reservations.some(r=>r.id===entry.id))data.reservations.push({id:entry.id,ownerId:entry.uid,resident:String(p.p_resident),unit:String(p.p_unit),block:p.p_block===undefined?undefined:String(p.p_block),area:p.p_area as Area,date:String(p.p_date),start:String(p.p_start),end:String(p.p_end),notes:String(p.p_notes??''),cancelled:false,syncStatus});
     if(entry.name==='cancel_reservation')data.reservations=data.reservations.map(r=>r.id===p.p_id?{...r,cancelled:true,syncStatus}:r);
     if(entry.name==='enter_vehicle'){
       if(!data.vehicles.some(v=>v.id===entry.id))data.vehicles.unshift({id:entry.id,plate:String(p.p_plate),driver:String(p.p_driver),unit:String(p.p_unit),reason:String(p.p_reason),entered:entry.occurredAt,exited:null,syncStatus});

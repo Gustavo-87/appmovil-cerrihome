@@ -39,6 +39,8 @@ export async function executeOperation(db, uid, operation, p, clock=()=>new Date
     }
     if(operation==='create_reservation') {
       const resident=text(p.p_resident,90),unit=text(p.p_unit,40),notes=text(p.p_notes??'',1000,false);
+      const block=p.p_block===undefined&&requestId?undefined:text(p.p_block,40);
+      if(block!==undefined&&!/^\d+$/.test(unit))fail('invalid_input');
       const date=p.p_date,start=p.p_start,end=p.p_end,area=p.p_area;
       const validTime=v=>typeof v==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(v);
       const dateValue=typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)?new Date(`${date}T12:00:00Z`):new Date(NaN);
@@ -46,7 +48,7 @@ export async function executeOperation(db, uid, operation, p, clock=()=>new Date
       if(!Number.isFinite(dateValue.getTime())||dateValue.toISOString().slice(0,10)!==date||!validTime(start)||!validTime(end)||start>=end||!zones.includes(area)||`${date}T${start}`<=localNow)fail('invalid_input');
       const dayRef=db.doc(`booking_days/${date}_${zones.indexOf(area)}`),day=(await tx.get(dayRef)).data()??{slots:[]};
       if(day.slots.some(slot=>start<slot.end&&end>slot.start))fail('reservation_conflict',409);
-      const id=requestId??randomUUID(),row={id,ownerId:uid,resident,unit,area,date,start,end,notes,cancelled:false};
+      const id=requestId??randomUUID(),row={id,ownerId:uid,resident,unit,...(block===undefined?{}:{block}),area,date,start,end,notes,cancelled:false};
       if(requestId&&(await tx.get(db.doc(`reservations/${id}`))).exists)fail('invalid_input');
       tx.set(dayRef,{slots:[...day.slots,{id,start,end}]});tx.set(db.doc(`reservations/${id}`),row);audit('reservations',id,null,row);return finish(id);
     }

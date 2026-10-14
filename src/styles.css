@@ -38,3 +38,11 @@ button:disabled{opacity:.55;cursor:wait}
 .sync-panel{border:1px solid var(--line);background:var(--field);border-radius:12px;padding:12px 16px;margin-bottom:18px}.sync-panel .connection-toolbar{margin:0}.sync-panel>p{margin-top:10px;line-height:1.6;font-size:12px}.sync-failure{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.sync-failure p{margin:8px 0;color:var(--danger-text)}.sync-failure small{color:var(--muted)}.sync-failure>div{display:flex;gap:16px}
 
 .brand img,.auth-card>img{object-fit:contain;border-radius:12px}
+
+.sidebar nav{margin-top:30px}
+.operation-summary{padding-bottom:18px}
+.summary-rows{padding:0 22px}
+.summary-rows button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:16px 0;border-bottom:1px solid var(--line)}
+.summary-rows span{display:flex;align-items:center;gap:10px;font-size:12px}
+.summary-rows strong{font-size:20px}
+.operation-summary>p{padding:16px 22px 0;font-size:11px;line-height:1.6}

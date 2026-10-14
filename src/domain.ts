@@ -1,5 +1,5 @@
 export type Area = 'Salón social' | 'Gimnasio' | 'Golfito';
-export type Reservation = { id: string; resident: string; unit: string; area: Area; date: string; start: string; end: string; notes: string; cancelled: boolean; ownerId?: string; syncStatus?: 'pending' };
+export type Reservation = { id: string; resident: string; unit: string; block?: string; area: Area; date: string; start: string; end: string; notes: string; cancelled: boolean; ownerId?: string; syncStatus?: 'pending' };
 export type Vehicle = { id: string; plate: string; driver: string; unit: string; reason: string; entered: string; exited: string | null; syncStatus?: 'pending' };
 export type Incident = { id: string; title: string; description: string; category: string; created: string; resolved: boolean; vehicleId?: string; ownerId?: string; syncStatus?: 'pending' };
 export type Data = { reservations: Reservation[]; vehicles: Vehicle[]; incidents: Incident[] };
@@ -7,6 +7,7 @@ export const areas: Area[] = ['Salón social', 'Gimnasio', 'Golfito'];
 export const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export function shiftDate(date: string, days: number) { const d = new Date(date + 'T12:00:00'); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 export function reservationError(r: Omit<Reservation, 'id' | 'cancelled'>, existing: Reservation[]) {
+  if (!r.block?.trim() || !/^\d+$/.test(r.unit.trim())) return 'Completa la manzana y el número de casa.';
   if (!r.resident.trim() || !r.unit.trim() || !areas.includes(r.area)) return 'Completa el residente, la vivienda y la zona.';
   const parsed = new Date(r.date + 'T12:00:00Z');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0,10) !== r.date || r.date < today()) return 'Selecciona una fecha válida de hoy en adelante.';
@@ -46,3 +47,5 @@ export function loadData(): {data: Data; error: string} {
     return {data:d,error:''};
   } catch { return {data:seedData(),error:'No se pudieron leer los datos locales. Se muestra una demostración sin sobrescribir tus datos. Revisa el almacenamiento del navegador.'}; }
 }
+
+export const reservationHome = (r: Reservation) => r.block ? `Manzana ${r.block} · Casa ${r.unit}` : r.unit;

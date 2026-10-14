@@ -53,3 +53,11 @@ describe('Registros locales persistentes y sincronización',()=>{
   expect(projectQueue(empty,await getQueue('local-i')).incidents[0]).toMatchObject({resolved:true,syncStatus:'pending'});
  });
 });
+
+it('conserva un envío que supera el tiempo de espera para reintentar con el mismo ID',async()=>{
+ const entry=await enqueue('timeout-regression','create_incident',{p_title:'Prueba',p_description:'Texto',p_category:'General'});
+ await synchronize(entry.uid,async()=>{throw {code:'request_timeout'};});
+ expect((await getQueue(entry.uid))[0]).toMatchObject({id:entry.id,status:'pending',error:'request_timeout'});
+ await synchronize(entry.uid,async op=>{expect(op.id).toBe(entry.id);});
+ expect((await getQueue(entry.uid))[0].status).toBe('confirmed');
+});

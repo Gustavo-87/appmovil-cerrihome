@@ -20,6 +20,7 @@ export function backendError(error: unknown): string {
   if(code==='server_update_required')return 'Actualiza y reinicia el servidor del Mac para sincronizar esta versión Android. Los registros locales se conservan.';
   if(code==='offline_initial_login')return 'Conecta el teléfono a Internet para preparar el primer acceso y descargar los datos.';
   if(code==='offline_admin')return 'La gestión de cuentas necesita conexión con el servidor.';
+  if(code==='request_timeout')return 'El servidor tardó demasiado en responder. Los registros se conservan; vuelve a intentar.';
   if(code==='network_error')return 'Sin conexión con el servidor. Los registros pendientes permanecen guardados en este dispositivo.';
   if (code === 'reservation_conflict') return 'Esta zona ya está reservada en ese horario. Elige otro horario.';
   if (code === 'duplicate_vehicle') return 'Este vehículo ya tiene un ingreso activo.';
@@ -35,12 +36,14 @@ async function api<T>(path: string, body?: unknown, expectedUid?: string): Promi
   const token = await auth.currentUser.getIdToken();
   if(expectedUid&&auth.currentUser?.uid!==expectedUid)throw {code:'not_authorized'};
   let response:Response;
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),30000);
   try{response = await fetch(`${apiOrigin}/api/${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     headers: { Authorization: `Bearer ${token}`, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(8000),
-  });}catch{throw {code:'network_error'};}
+    signal: controller.signal,
+  });}catch{throw {code:controller.signal.aborted?'request_timeout':'network_error'};}finally{clearTimeout(timeout);}
   const data = await response.json();
   if (!response.ok) throw { code: path==='sync-status'&&[404,405].includes(response.status)?'server_update_required':data.error };
   return data as T;

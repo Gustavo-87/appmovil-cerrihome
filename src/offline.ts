@@ -60,7 +60,7 @@ export function synchronize(uid: string,send:(entry:QueuedOperation)=>Promise<un
       try{await send(entry);await updateQueued({...entry,status:'confirmed',error:undefined});}
       catch(e){
         const code=(e as {code?:string})?.code;
-        if(!code||['network_error','service_unavailable','rate_limited','auth/network-request-failed','auth/user-token-expired','not_authorized','origin_not_allowed','server_update_required'].includes(code)){await updateQueued({...entry,error:code??'network_error'});break;}
+        if(!code||['network_error','request_timeout','service_unavailable','rate_limited','auth/network-request-failed','auth/user-token-expired','not_authorized','origin_not_allowed','server_update_required'].includes(code)){await updateQueued({...entry,error:code??'network_error'});break;}
         await updateQueued({...entry,status:'failed',error:code});
       }
     }

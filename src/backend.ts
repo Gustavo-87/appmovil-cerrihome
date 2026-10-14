@@ -63,8 +63,8 @@ export { getQueue, removeQueued };
 export async function retryQueued(entry:QueuedOperation){await updateQueued({...entry,status:'pending',error:undefined});await syncPending(entry.uid);}
 export function watchQueue(uid:string,callback:(queue:QueuedOperation[])=>void){
   let closed=false;const update=()=>void getQueue(uid).then(rows=>{if(!closed)callback(rows);}).catch(()=>{});
-  const listener=(e:Event)=>{if((e as CustomEvent).detail===uid)update();};window.addEventListener('cerritos-outbox-changed',listener);update();
-  return()=>{closed=true;window.removeEventListener('cerritos-outbox-changed',listener);};
+  const listener=(e:Event)=>{if((e as CustomEvent).detail===uid)update();};window.addEventListener('cerritos-outbox-changed',listener);const timer=setInterval(update,3000);update();
+  return()=>{closed=true;clearInterval(timer);window.removeEventListener('cerritos-outbox-changed',listener);};
 }
 export const listProfiles = () => api<Profile[]>('users');
 export const createAccount = (values: Omit<Profile, 'id'>) => api<Profile>('users', values);
@@ -109,7 +109,14 @@ export function subscribeData(onData: (data: Data) => void, onError: (error: unk
     }
   };
   const stopQueue=watchQueue(uid,rows=>{queue=rows;reconcile();emit();});
-  const trigger=()=>void syncPending(uid).catch(()=>{});
+  const trigger=()=>{
+    if(closed||auth?.currentUser?.uid!==uid)return;
+    reconcile();
+    void syncPending(uid).catch(()=>{});
+  };
+  const resume=()=>{if(document.visibilityState!=='hidden')trigger();};
+  document.addEventListener('visibilitychange',resume);
+  window.addEventListener('focus',resume);
   window.addEventListener('online',trigger);
   const timer=setInterval(()=>{if(document.visibilityState!=='hidden')trigger();},15000);trigger();
   const stops = (['reservations','vehicles','incidents'] as const).map(name => onSnapshot(collection(db, name), {includeMetadataChanges:true}, snapshot => {
@@ -118,5 +125,5 @@ export function subscribeData(onData: (data: Data) => void, onError: (error: unk
     ready.add(name);
     reconcile();emit();
   }, error => { if (!closed) onError(error); }));
-  return () => { closed = true;stopQueue();clearInterval(timer);window.removeEventListener('online',trigger);stops.forEach(stop => stop()); };
+  return () => { closed = true;stopQueue();clearInterval(timer);window.removeEventListener('online',trigger);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);stops.forEach(stop => stop()); };
 }

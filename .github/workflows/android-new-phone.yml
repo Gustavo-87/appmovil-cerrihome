@@ -100,7 +100,7 @@ jobs:
           mkdir "$RUNNER_TEMP/apk-download"
           for file in "${files[@]}"; do gh release download v0.5.0 --pattern "$file" --dir "$RUNNER_TEMP/apk-download"; cmp "artifacts/$file" "$RUNNER_TEMP/apk-download/$file"; done
           (cd "$RUNNER_TEMP/apk-download" && sha256sum -c cerritos-home-0.5.0-new-phone.apk.sha256)
-          gh release edit v0.5.0 --draft=false --title 'Cerritos Home 0.5.0 — instalación para teléfono nuevo' --notes-file "$RUNNER_TEMP/notes.md"
+          gh release edit v0.5.0 --target "$(git rev-parse HEAD)" --draft=false --title 'Cerritos Home 0.5.0 — instalación para teléfono nuevo' --notes-file "$RUNNER_TEMP/notes.md"
       - name: Eliminar copia temporal de firma
         if: always()
         run: rm -f "$RUNNER_TEMP/cerritos-permanent.p12"

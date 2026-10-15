@@ -31,8 +31,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
-      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Preparar SDK Android instalado en el runner
+        run: |
+          set -euo pipefail
+          manager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$manager"
+          if ! "$manager" 'platforms;android-36' 'build-tools;36.0.0' > "$RUNNER_TEMP/sdk-setup.log" 2>&1; then
+            node -e 'const s=require("fs").readFileSync(process.argv[1],"utf8").slice(-3000).replaceAll("%","%25").replaceAll("\r","%0D").replaceAll("\n","%0A");console.log("::error::"+s)' "$RUNNER_TEMP/sdk-setup.log"
+            exit 1
+          fi
       - run: |
           test "$(node -p 'require("./package.json").version')" = 0.5.0
           git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
@@ -50,8 +57,12 @@ jobs:
           CERRITOS_ANDROID_UNSIGNED_CHECK: 'true'
         run: |
           cd android
-          bash gradlew :app:assembleRelease --no-daemon --max-workers=2 --console=plain
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | head -1
+          if ! bash gradlew :app:assembleRelease --no-daemon --max-workers=2 --console=plain > "$RUNNER_TEMP/android-build.log" 2>&1; then
+            node -e 'const s=require("fs").readFileSync(process.argv[1],"utf8").slice(-4000).replaceAll("%","%25").replaceAll("\r","%0D").replaceAll("\n","%0A");console.log("::error::"+s)' "$RUNNER_TEMP/android-build.log"
+            exit 1
+          fi
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk > "$RUNNER_TEMP/unsigned-badging.txt"
+          sed -n '1p' "$RUNNER_TEMP/unsigned-badging.txt"
           if "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify app/build/outputs/apk/release/app-release-unsigned.apk; then
             echo 'El ensayo no debe contener una firma.' >&2
             exit 1

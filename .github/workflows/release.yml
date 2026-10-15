@@ -1,0 +1,75 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Versión del borrador vX.Y.Z'
+        required: true
+        default: v0.5.0
+      source_ref:
+        description: 'Commit o rama fuente de firebase-golfito-0.3.0'
+        required: true
+        default: firebase-golfito-0.3.0
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Validar etiqueta y rama
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          test "$TAG" = "v$(node -p 'require("./package.json").version')"
+          git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:production
+        env:
+          VITE_FIREBASE_API_KEY: test-public-key
+          VITE_FIREBASE_AUTH_DOMAIN: demo-cerritos.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: demo-cerritos
+          VITE_FIREBASE_APP_ID: '1:123:web:test'
+          VITE_DEMO_MODE: 'false'
+      - run: npm run test:server
+      - run: node --test tests/release.cjs
+      - run: node scripts/package-release.mjs
+      - name: Completar y verificar el borrador (sin Android)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          sha=$(git rev-parse HEAD)
+          metadata=$(tar -xOf "artifacts/cerritos-home-$version-server.tar.gz" ./release.json)
+          printf '%s' "$metadata" | node -e 'let b="";process.stdin.on("data",d=>b+=d).on("end",()=>{const m=JSON.parse(b);if(m.testOnly!==false||m.version!==process.argv[1]||m.commit!==process.argv[2])process.exit(1)})' "$version" "$sha"
+          notes="$RUNNER_TEMP/release-notes.md"
+          printf 'Servidor y actualizador Mac %s desde `%s`.\n\n53 pruebas de aplicación y ensayo aislado de reversión correctos. Android bloqueado hasta recuperar y verificar la clave original; no se genera ni adjunta APK.\n\n[Instrucciones para la instalación actual del Mac](https://github.com/%s/blob/%s/docs/UPDATES.md). La prueba usa una carpeta separada y no reinicia el servicio activo.\n\nGenerado y verificado en [GitHub Actions](https://github.com/%s/actions/runs/%s).\n' "$version" "$sha" "$GITHUB_REPOSITORY" "$sha" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > "$notes"
+          if gh release view "$TAG" --json isDraft > "$RUNNER_TEMP/release-state.json"; then
+            node -e 'if(!require(process.argv[1]).isDraft)throw Error("No se modifican Releases publicadas")' "$RUNNER_TEMP/release-state.json"
+            gh release edit "$TAG" --target "$sha" --title "Cerritos Home $version — servidor y actualizador Mac" --notes-file "$notes"
+          else
+            gh release create "$TAG" --target "$sha" --draft --title "Cerritos Home $version — servidor y actualizador Mac" --notes-file "$notes"
+          fi
+          files=("cerritos-home-$version-server.tar.gz" "cerritos-home-$version-server.tar.gz.sha256" "cerritos-home-$version-update-mac.sh" "cerritos-home-$version-update-mac.sh.sha256")
+          for file in "${files[@]}"; do gh release upload "$TAG" "artifacts/$file" --clobber; done
+          mkdir "$RUNNER_TEMP/verified-assets"
+          gh release download "$TAG" --dir "$RUNNER_TEMP/verified-assets"
+          for file in "${files[@]}"; do cmp "artifacts/$file" "$RUNNER_TEMP/verified-assets/$file"; done
+          (cd "$RUNNER_TEMP/verified-assets" && sha256sum -c "cerritos-home-$version-server.tar.gz.sha256" && sha256sum -c "cerritos-home-$version-update-mac.sh.sha256")
+          gh release view "$TAG" --json isDraft,assets > "$RUNNER_TEMP/release-final.json"
+          node -e 'const r=require(process.argv[1]);const expected=process.argv.slice(2).sort();if(!r.isDraft||JSON.stringify(r.assets.map(a=>a.name).sort())!==JSON.stringify(expected))throw Error("Los assets del borrador no coinciden")' "$RUNNER_TEMP/release-final.json" "${files[@]}"

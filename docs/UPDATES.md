@@ -23,9 +23,11 @@ El certificado público no permite recuperar la clave privada.
 2. Confirma los cambios y ejecuta `node scripts/package-release.mjs` con árbol limpio.
    Para ensayos permite `--allow-dirty`: el paquete queda marcado `testOnly` y
    el actualizador lo rechaza.
-3. La etiqueta `vX.Y.Z` debe coincidir con package.json y apuntar a un commit de
-   `firebase-golfito-0.3.0`. El workflow crea un **borrador**, con código del
-   servidor, actualizador y SHA256. No crea ni sube una APK automáticamente.
+3. La versión `vX.Y.Z` debe coincidir con package.json. El disparador manual
+   permite seleccionar el commit o rama fuente y comprueba que pertenece a
+   `firebase-golfito-0.3.0`. El workflow completa el **borrador** existente
+   (o crea uno) con servidor, actualizador y sus SHA256. No genera ni adjunta APK.
+   Después vuelve a descargar los cuatro assets y compara sus bytes y checksums.
 4. Revisa los archivos antes de publicar el borrador. No reutilices una etiqueta
    publicada ni reemplaces sus assets: crea una nueva versión.
 
@@ -78,21 +80,27 @@ No hay migraciones de Firestore automáticas ni borrado de datos de teléfonos.
 
 Los enlaces públicos de descarga no sirven para un borrador. Usa GitHub CLI
 autenticado como colaborador (`gh auth status`). Con Node 24 y los dos archivos
-ya preparados en `$HOME/CerritosHome/config`, ejecuta este bloque en Bash:
+existentes en tu instalación actual, ejecuta este bloque en Bash. Solo se leen
+`.env.local` y `.server.env` de la carpeta activa; no se modifica ni reinicia:
 
 ```bash
 set -euo pipefail
+umask 077
+active="/Users/gustavopiedrahita/DEVELOPER/Proyectos/appmovil-cerrihome-firebase-golfito-0.3.0"
+test -f "$active/.env.local"
+test -f "$active/.server.env"
 review=$(mktemp -d "$HOME/cerritos-review-0.5.0.XXXXXX")
 gh repo clone Gustavo-87/appmovil-cerrihome "$review/repo" -- --branch firebase-golfito-0.3.0 --single-branch
 mkdir "$review/assets"
 gh release download v0.5.0 --repo Gustavo-87/appmovil-cerrihome --dir "$review/assets"
 (cd "$review/assets" && shasum -a 256 -c cerritos-home-0.5.0-server.tar.gz.sha256 && shasum -a 256 -c cerritos-home-0.5.0-update-mac.sh.sha256)
 mkdir -p "$review/installation/config"
-cp "$HOME/CerritosHome/config/.env.local" "$review/installation/config/"
-cp "$HOME/CerritosHome/config/.server.env" "$review/installation/config/"
-chmod 600 "$review/installation/config/".*env*
+cp "$active/.env.local" "$review/installation/config/"
+cp "$active/.server.env" "$review/installation/config/"
+chmod 600 "$review/installation/config/.env.local" "$review/installation/config/.server.env"
 bash "$review/assets/cerritos-home-0.5.0-update-mac.sh" v0.5.0 "$review/installation" --no-restart "$review/assets"
 readlink "$review/installation/current"
+# La credencial privada Firebase debe usar una ruta absoluta válida en este Mac.
 node --test "$review/repo/tests/release.cjs"
 printf 'Prueba conservada en: %s\n' "$review"
 ```

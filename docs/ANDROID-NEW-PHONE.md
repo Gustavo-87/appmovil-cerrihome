@@ -14,8 +14,13 @@ accesible desde el teléfono (Tailscale o la publicación ya configurada con Fun
 La integración de esta sesión devuelve HTTP 403 para Actions Secrets, incluida
 la lectura de su clave pública. No se ha generado una clave para dejarla sin
 respaldo seguro. El propietario debe ejecutar una sola vez el siguiente bloque
-en el Mac, con Python 3, GitHub CLI autenticado con acceso a Secrets y JDK 21
+en el Mac, con Python 3, OpenSSL 3, GitHub CLI autenticado con acceso a Secrets y JDK 21
 (o Android Studio). Se usa una copia separada, sin alterar la instalación activa:
+
+Si falta OpenSSL 3, instálalo con `brew install openssl@3`; el script detecta
+su ruta de Homebrew automáticamente. `gh auth status` debe mostrar tu cuenta
+con acceso a los secretos del repositorio. Si recibes 403, usa tu propia sesión
+de GitHub CLI con ese permiso; no pegues tokens o contraseñas en el chat.
 
 ```bash
 set -euo pipefail

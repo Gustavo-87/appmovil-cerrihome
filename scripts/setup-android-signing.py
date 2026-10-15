@@ -20,6 +20,8 @@ SERVICE = 'com.cerritoshome.android.permanent.v1.recovery'
 ACCOUNT = getpass.getuser()
 DIRECTORY = Path.home() / '.config/cerritos-home/android-signing-v1'
 BACKUP = DIRECTORY / 'permanent-signing-backup.enc'
+OPENSSL = next((str(path) for path in [Path('/opt/homebrew/opt/openssl@3/bin/openssl'),
+                                      Path('/usr/local/opt/openssl@3/bin/openssl')] if path.exists()), 'openssl')
 
 
 def run(args, **kwargs):
@@ -45,7 +47,7 @@ def crypt(payload, password, decrypt=False):
         os.write(write_fd, password.encode() + b'\n')
         os.close(write_fd)
         write_fd = None
-        args = ['openssl', 'enc', '-aes-256-cbc', '-pbkdf2', '-iter', '600000', '-md', 'sha256', '-pass', f'fd:{read_fd}']
+        args = [OPENSSL, 'enc', '-aes-256-cbc', '-pbkdf2', '-iter', '600000', '-md', 'sha256', '-pass', f'fd:{read_fd}']
         if decrypt:
             args.append('-d')
         result = run(args, input=payload, pass_fds=(read_fd,))
@@ -116,6 +118,8 @@ def main():
     if recovered != payload:
         raise RuntimeError('El ensayo de restauración del respaldo falló.')
     certificate = fingerprint(private, payload['store_password'], payload['alias'], keytool)
+    private.chmod(0o600)
+    BACKUP.chmod(0o600)
     with tempfile.TemporaryDirectory(dir=DIRECTORY) as temporary:
         restored = Path(temporary) / 'restored.p12'
         restored.write_bytes(base64.b64decode(recovered['keystore']))
@@ -127,6 +131,7 @@ def main():
     if backup_copy.exists() and backup_copy.read_bytes() != BACKUP.read_bytes():
         raise RuntimeError('Ya existe otro respaldo en Documents; no se sobrescribe.')
     backup_copy.write_bytes(BACKUP.read_bytes())
+    backup_copy.chmod(0o600)
     secret_values = {
         'CERRITOS_ANDROID_KEYSTORE_BASE64': payload['keystore'],
         'CERRITOS_ANDROID_STORE_PASSWORD': payload['store_password'],

@@ -15,6 +15,10 @@ class BackupTests(unittest.TestCase):
         self.assertEqual(signing.crypt(encrypted, 'fixture-password', decrypt=True), payload)
         with self.assertRaises(RuntimeError):
             signing.crypt(encrypted, 'wrong-password', decrypt=True)
+        altered = bytearray(encrypted)
+        altered[-40] ^= 1
+        with self.assertRaises(RuntimeError):
+            signing.crypt(bytes(altered), 'fixture-password', decrypt=True)
 
 
 if __name__ == '__main__':

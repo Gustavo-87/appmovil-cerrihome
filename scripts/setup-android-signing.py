@@ -3,6 +3,7 @@
 import base64
 import getpass
 import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
@@ -30,6 +31,15 @@ def run(args, **kwargs):
 
 
 def crypt(payload, password, decrypt=False):
+    header = b'CERRITOS-SIGNING-V1\x00'
+    if decrypt:
+        if not payload.startswith(header) or len(payload) < len(header) + 64:
+            raise RuntimeError('Formato de respaldo incorrecto.')
+        salt = payload[len(header):len(header) + 16]
+        authentication_key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 600000)
+        if not hmac.compare_digest(hmac.new(authentication_key, payload[:-32], hashlib.sha256).digest(), payload[-32:]):
+            raise RuntimeError('Contraseña incorrecta o respaldo modificado.')
+        payload = payload[len(header) + 16:-32]
     read_fd, write_fd = os.pipe()
     try:
         os.write(write_fd, password.encode() + b'\n')
@@ -38,7 +48,13 @@ def crypt(payload, password, decrypt=False):
         args = ['openssl', 'enc', '-aes-256-cbc', '-pbkdf2', '-iter', '600000', '-md', 'sha256', '-pass', f'fd:{read_fd}']
         if decrypt:
             args.append('-d')
-        return run(args, input=payload, pass_fds=(read_fd,))
+        result = run(args, input=payload, pass_fds=(read_fd,))
+        if decrypt:
+            return result
+        salt = secrets.token_bytes(16)
+        authentication_key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 600000)
+        envelope = header + salt + result
+        return envelope + hmac.new(authentication_key, envelope, hashlib.sha256).digest()
     finally:
         os.close(read_fd)
         if write_fd is not None:

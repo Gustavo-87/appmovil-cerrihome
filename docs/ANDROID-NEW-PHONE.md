@@ -31,7 +31,9 @@ PKCS12 con validez de 10.000 días, una sola vez, fuera del repositorio. Las
 ejecuciones posteriores reutilizan el respaldo. No imprime contraseñas ni claves.
 Guarda la contraseña de recuperación en el Llavero de macOS bajo
 `com.cerritoshome.android.permanent.v1.recovery`. Cifra el keystore y sus
-credenciales con AES-256-CBC y PBKDF2 (600.000 iteraciones). El descifrado y la
+credenciales con AES-256-CBC y PBKDF2 (600.000 iteraciones), autenticado con
+HMAC-SHA256 y una clave derivada por separado. Rechaza modificaciones antes de
+descifrar. El descifrado y la
 restauración del certificado se prueban antes de registrar los secretos o publicar.
 Compara la huella SHA256 después de recuperar para detectar un respaldo incorrecto.
 

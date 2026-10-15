@@ -1,20 +1,23 @@
 apply plugin: 'com.android.application'
 
-def existingDebugKeystore = System.getenv('CERRITOS_ANDROID_KEYSTORE')
-if (!existingDebugKeystore || !file(existingDebugKeystore).isFile()) {
-    throw new GradleException('Falta la clave Android original. No se generará otra firma. Configura CERRITOS_ANDROID_KEYSTORE.')
+def permanentKeystore = System.getenv('CERRITOS_ANDROID_KEYSTORE')
+def unsignedCheck = System.getenv('CERRITOS_ANDROID_UNSIGNED_CHECK') == 'true'
+if (!unsignedCheck && (!permanentKeystore || !file(permanentKeystore).isFile())) {
+    throw new GradleException('Falta la firma permanente para teléfonos nuevos. Configura CERRITOS_ANDROID_KEYSTORE; no se generará una clave automáticamente.')
 }
-if (!System.getenv('CERRITOS_ANDROID_STORE_PASSWORD') || !System.getenv('CERRITOS_ANDROID_KEY_ALIAS') || !System.getenv('CERRITOS_ANDROID_KEY_PASSWORD')) {
-    throw new GradleException('Faltan las credenciales de la firma Android original.')
+if (!unsignedCheck && (!System.getenv('CERRITOS_ANDROID_STORE_PASSWORD') || !System.getenv('CERRITOS_ANDROID_KEY_ALIAS') || !System.getenv('CERRITOS_ANDROID_KEY_PASSWORD'))) {
+    throw new GradleException('Faltan las credenciales de la firma permanente.')
 }
 
 android {
     signingConfigs {
-        debug {
-            storeFile file(existingDebugKeystore)
-            storePassword System.getenv('CERRITOS_ANDROID_STORE_PASSWORD')
-            keyAlias System.getenv('CERRITOS_ANDROID_KEY_ALIAS')
-            keyPassword System.getenv('CERRITOS_ANDROID_KEY_PASSWORD')
+        if (!unsignedCheck) {
+            permanent {
+                storeFile file(permanentKeystore)
+                storePassword System.getenv('CERRITOS_ANDROID_STORE_PASSWORD')
+                keyAlias System.getenv('CERRITOS_ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('CERRITOS_ANDROID_KEY_PASSWORD')
+            }
         }
     }
     namespace = "com.cerritoshome.app"
@@ -33,7 +36,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig = null
+        }
         release {
+            if (!unsignedCheck) signingConfig signingConfigs.permanent
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

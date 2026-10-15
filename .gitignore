@@ -7,6 +7,8 @@ dist/
 *.tsbuildinfo
 *.jks
 *.keystore
+*.p12
+*.pfx
 artifacts/
 
 .server.env
@@ -15,3 +17,4 @@ artifacts/
 .firebase/
 *-debug.log
 serviceAccount*.json
+__pycache__/

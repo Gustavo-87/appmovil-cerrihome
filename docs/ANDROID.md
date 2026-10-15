@@ -1,9 +1,8 @@
 # Pruebas de Cerritos Home en Android
 
-**Actualizaciones 0.5.0:** consulta [UPDATES.md](UPDATES.md). La clave original no
-está disponible en este entorno. Los comandos de compilación ahora exigen una
-clave existente y el script verifica su certificado contra las APK anteriores.
-No generes otra clave ni desinstales la aplicación para resolver conflictos.
+**Entrega 0.5.0 para teléfono nuevo:** consulta [ANDROID-NEW-PHONE.md](ANDROID-NEW-PHONE.md).
+Se ha autorizado una firma permanente nueva, independiente de las APK anteriores.
+No instales esta entrega como actualización ni desinstales la aplicación anterior.
 Las referencias 0.4.0 de esta guía corresponden al procedimiento anterior;
 el código actual usa versionName 0.5.0 y versionCode 8.
 

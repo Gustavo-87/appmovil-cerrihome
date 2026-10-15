@@ -112,7 +112,14 @@ compila con tu configuración, pero no arranca el servidor ni valida Firebase.
 La reversión real con launchd requiere una ventana de prueba en el Mac después
 de migrar el LaunchAgent a la estructura `current` descrita arriba.
 
-## Android: bloqueo hasta recuperar la firma
+## Android: entrega separada para teléfono nuevo
+
+La autorización actual permite una firma permanente nueva. Sigue
+[ANDROID-NEW-PHONE.md](ANDROID-NEW-PHONE.md) para respaldarla, registrarla
+y publicar. La recuperación de la clave anterior solo afecta a las actualizaciones
+de los teléfonos antiguos. Lo siguiente describe esa restricción histórica.
+
+### Restricción de actualización de APK anteriores
 
 No ejecutes `keytool -genkey`, no reemplaces debug.keystore y no desinstales la app.
 Gradle y el script de compilación exigen una clave existente mediante

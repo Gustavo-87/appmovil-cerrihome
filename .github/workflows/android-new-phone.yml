@@ -1,0 +1,95 @@
+name: Android para teléfono nuevo
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Rama o SHA completo de firebase-golfito-0.3.0
+        default: firebase-golfito-0.3.0
+        required: true
+      publish:
+        description: Compilar con firma permanente y publicar; false solo comprueba compilación sin firma
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: release-v0.5.0
+  cancel-in-progress: false
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - run: |
+          test "$(node -p 'require("./package.json").version')" = 0.5.0
+          git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
+          npm ci
+          npm test
+          python3 tests/signing-backup.py
+          node --test tests/verify-android.cjs
+      - name: Preparar la web Android con el mismo Firebase
+        run: |
+          cp .env.example .env.local
+          npm run android:sync
+      - name: Comprobar compilación sin firma (no instalable, no publicable)
+        if: ${{ !inputs.publish }}
+        env:
+          CERRITOS_ANDROID_UNSIGNED_CHECK: 'true'
+        run: |
+          cd android
+          bash gradlew :app:assembleRelease --no-daemon --max-workers=2 --console=plain
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging app/build/outputs/apk/release/app-release-unsigned.apk | head -1
+          if "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify app/build/outputs/apk/release/app-release-unsigned.apk; then
+            echo 'El ensayo no debe contener una firma.' >&2
+            exit 1
+          fi
+      - name: Recuperar firma permanente y exigir respaldo verificado
+        if: ${{ inputs.publish }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.CERRITOS_ANDROID_KEYSTORE_BASE64 }}
+          BACKUP_VERIFIED: ${{ secrets.CERRITOS_ANDROID_BACKUP_VERIFIED }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_BASE64"
+          [[ "$BACKUP_VERIFIED" =~ ^[a-f0-9]{64}$ ]]
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/cerritos-permanent.p12"
+      - name: Compilar y verificar versión, firma y certificado
+        if: ${{ inputs.publish }}
+        env:
+          CERRITOS_ANDROID_KEYSTORE: ${{ runner.temp }}/cerritos-permanent.p12
+          CERRITOS_ANDROID_STORE_PASSWORD: ${{ secrets.CERRITOS_ANDROID_STORE_PASSWORD }}
+          CERRITOS_ANDROID_KEY_PASSWORD: ${{ secrets.CERRITOS_ANDROID_KEY_PASSWORD }}
+          CERRITOS_ANDROID_KEY_ALIAS: ${{ secrets.CERRITOS_ANDROID_KEY_ALIAS }}
+          CERRITOS_ANDROID_CERT_SHA256: ${{ secrets.CERRITOS_ANDROID_CERT_SHA256 }}
+        run: node scripts/build-android.mjs
+      - name: Adjuntar, verificar y publicar Release 0.5.0
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v0.5.0 --json isDraft,body > "$RUNNER_TEMP/release.json"
+          node -e 'const r=require(process.argv[1]);if(!r.isDraft)throw Error("Solo se completa el borrador existente");require("fs").writeFileSync(process.argv[2],"## Instalación para teléfono nuevo; incompatible como actualización de las APK anteriores\n\nAPK 0.5.0 con firma permanente nueva. Conserva Firebase app-cerritoshome y las cuentas actuales. No instalar sobre las APK anteriores, no desinstalar ni borrar datos del teléfono anterior.\n\n[Instalación y respaldo de firma](https://github.com/"+process.env.GITHUB_REPOSITORY+"/blob/"+process.env.GITHUB_SHA+"/docs/ANDROID-NEW-PHONE.md)\n\n"+r.body.replace(/Android bloqueado hasta recuperar y verificar la clave original; no se genera ni adjunta APK\./g,"La APK para teléfono nuevo utiliza una firma permanente nueva."))' "$RUNNER_TEMP/release.json" "$RUNNER_TEMP/notes.md"
+          files=(cerritos-home-0.5.0-new-phone.apk cerritos-home-0.5.0-new-phone.apk.sha256 cerritos-home-0.5.0-new-phone.apk.verification.json)
+          for file in "${files[@]}"; do gh release upload v0.5.0 "artifacts/$file" --clobber; done
+          mkdir "$RUNNER_TEMP/apk-download"
+          for file in "${files[@]}"; do gh release download v0.5.0 --pattern "$file" --dir "$RUNNER_TEMP/apk-download"; cmp "artifacts/$file" "$RUNNER_TEMP/apk-download/$file"; done
+          (cd "$RUNNER_TEMP/apk-download" && sha256sum -c cerritos-home-0.5.0-new-phone.apk.sha256)
+          gh release edit v0.5.0 --draft=false --title 'Cerritos Home 0.5.0 — instalación para teléfono nuevo' --notes-file "$RUNNER_TEMP/notes.md"
+      - name: Eliminar copia temporal de firma
+        if: always()
+        run: rm -f "$RUNNER_TEMP/cerritos-permanent.p12"

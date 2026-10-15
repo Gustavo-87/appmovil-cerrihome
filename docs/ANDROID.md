@@ -1,5 +1,12 @@
 # Pruebas de Cerritos Home en Android
 
+**Actualizaciones 0.5.0:** consulta [UPDATES.md](UPDATES.md). La clave original no
+está disponible en este entorno. Los comandos de compilación ahora exigen una
+clave existente y el script verifica su certificado contra las APK anteriores.
+No generes otra clave ni desinstales la aplicación para resolver conflictos.
+Las referencias 0.4.0 de esta guía corresponden al procedimiento anterior;
+el código actual usa versionName 0.5.0 y versionCode 8.
+
 La aplicación incluye la interfaz dentro del APK y conecta directamente a Firebase para autenticación y lecturas compartidas, y a la API del Mac para guardar operaciones. Después del primer acceso permite consultas y registros locales sin Internet; no necesita Vite, pero necesita alcanzar el Mac por Tailscale para escribir datos. Configura primero el proyecto real según [la guía de producción](PRODUCTION.md), incluidos Firebase, `VITE_API_ORIGIN` con el HTTPS del Mac y el origen Android en `ALLOWED_ORIGINS` del servidor. Sin configuración no permite ingresar. Sigue el recorrido de [OFFLINE.md](OFFLINE.md) para preparar y probar el teléfono.
 
 ## Instalar el APK de pruebas

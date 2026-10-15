@@ -1,6 +1,22 @@
 apply plugin: 'com.android.application'
 
+def existingDebugKeystore = System.getenv('CERRITOS_ANDROID_KEYSTORE')
+if (!existingDebugKeystore || !file(existingDebugKeystore).isFile()) {
+    throw new GradleException('Falta la clave Android original. No se generará otra firma. Configura CERRITOS_ANDROID_KEYSTORE.')
+}
+if (!System.getenv('CERRITOS_ANDROID_STORE_PASSWORD') || !System.getenv('CERRITOS_ANDROID_KEY_ALIAS') || !System.getenv('CERRITOS_ANDROID_KEY_PASSWORD')) {
+    throw new GradleException('Faltan las credenciales de la firma Android original.')
+}
+
 android {
+    signingConfigs {
+        debug {
+            storeFile file(existingDebugKeystore)
+            storePassword System.getenv('CERRITOS_ANDROID_STORE_PASSWORD')
+            keyAlias System.getenv('CERRITOS_ANDROID_KEY_ALIAS')
+            keyPassword System.getenv('CERRITOS_ANDROID_KEY_PASSWORD')
+        }
+    }
     namespace = "com.cerritoshome.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {

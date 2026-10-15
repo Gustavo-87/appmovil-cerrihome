@@ -1,0 +1,50 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Etiqueta existente vX.Y.Z'
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Validar etiqueta y rama
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          test "$TAG" = "v$(node -p 'require("./package.json").version')"
+          git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:production
+        env:
+          VITE_FIREBASE_API_KEY: test-public-key
+          VITE_FIREBASE_AUTH_DOMAIN: demo-cerritos.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: demo-cerritos
+          VITE_FIREBASE_APP_ID: '1:123:web:test'
+          VITE_DEMO_MODE: 'false'
+      - run: npm run test:server
+      - run: node --test tests/release.cjs
+      - run: node scripts/package-release.mjs
+      - name: Crear borrador con los archivos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release create "$TAG" --verify-tag --draft --title "Cerritos Home $TAG" --notes "Servidor y actualizador Mac. APK pendiente de verificación de firma original." artifacts/*

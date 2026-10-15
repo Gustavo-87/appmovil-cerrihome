@@ -23,7 +23,7 @@ class Store {
 }
 let db: Store;
 const clock=()=>new Date('2026-10-13T12:00:00Z');
-const draft={p_resident:'Ana',p_unit:'Casa 1',p_area:'Golfito',p_date:'2026-10-14',p_start:'10:00',p_end:'11:00',p_notes:''};
+const draft={p_resident:'Ana',p_block:'A',p_unit:'1',p_area:'Golfito',p_date:'2026-10-14',p_start:'10:00',p_end:'11:00',p_notes:''};
 const run=(uid: string, name: string, args: any)=>executeOperation(db,uid,name,args,clock);
 beforeEach(()=>{
   db=new Store();db.rows.set('members/admin',{id:'admin',email:'admin@example.com',name:'Admin',role:'admin',active:true});
@@ -53,7 +53,7 @@ describe('Operaciones y autorización en el servidor',()=>{
     await run('guard','create_reservation',draft);
   });
   it('valida fecha, horario futuro, longitud y datos de servidor',async()=>{
-    for(const change of [{p_date:'2020-01-01'},{p_date:'2026-10-13',p_start:'06:00',p_end:'06:30'},{p_date:'2099-02-31'},{p_start:'25:00'},{p_resident:' '},{p_notes:'x'.repeat(1001)}]){
+    for(const change of [{p_block:undefined},{p_block:''},{p_unit:'Casa 1'},{p_date:'2020-01-01'},{p_date:'2026-10-13',p_start:'06:00',p_end:'06:30'},{p_date:'2099-02-31'},{p_start:'25:00'},{p_resident:' '},{p_notes:'x'.repeat(1001)}]){
       await expect(run('guard','create_reservation',{...draft,...change})).rejects.toMatchObject({code:'invalid_input'});
     }
   });

@@ -1,0 +1,67 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync, execFileSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const repository = path.resolve(__dirname, '..');
+const version = require('../package.json').version;
+
+test('paquete aislado y actualización con integridad, fallo previo y rollback', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cerritos-update-test-'));
+  const run = (command, args, options = {}) => spawnSync(command, args, { encoding: 'utf8', ...options });
+  try {
+    const result = run(process.execPath, ['scripts/package-release.mjs', '--allow-dirty'], { cwd: repository });
+    assert.equal(result.status, 0, result.stderr);
+    const archive = path.join(repository, `artifacts/cerritos-home-${version}-server.tar.gz`);
+    const listing = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' });
+    assert.match(listing, /package-lock.json/);
+    assert.match(listing, /server\/api.mjs/);
+    assert.doesNotMatch(listing, /(?:node_modules|downloads|\.keystore|\.server.env|\.env.local|\.git\/|dist\/)/);
+    const app = path.join(temp, 'app'); fs.mkdirSync(app);
+    execFileSync('tar', ['-xzf', archive, '-C', app]);
+    const metadata = JSON.parse(fs.readFileSync(path.join(app, 'release.json')));
+    assert.equal(metadata.testOnly, true);
+    // Fixture representing a clean published package, without publishing anything.
+    metadata.testOnly = false;
+    fs.writeFileSync(path.join(app, 'release.json'), JSON.stringify(metadata));
+    const fixture = path.join(temp, 'fixture.tar.gz');
+    execFileSync('tar', ['-czf', fixture, '-C', app, '.']);
+    const checksum = path.join(temp, 'checksum');
+    const hash = createHash('sha256').update(fs.readFileSync(fixture)).digest('hex');
+    const goodChecksum = `${hash}  cerritos-home-${version}-server.tar.gz\n`;
+    fs.writeFileSync(checksum, goodChecksum);
+    const bin = path.join(temp, 'bin'); fs.mkdirSync(bin);
+    const script = (name, body) => fs.writeFileSync(path.join(bin, name), '#!/bin/bash\nset -eu\n' + body, { mode: 0o700 });
+    script('curl', 'for arg in "$@"; do [[ "$arg" != http://127.0.0.1:4173/ ]] || exit 1; done\nfor arg in "$@"; do if [[ "$arg" == *.sha256 ]]; then source="$CHECKSUM"; fi; done\nsource=${source:-$FIXTURE}\nwhile [[ "$1" != -o ]]; do shift; done\ncp "$source" "$2"\n');
+    script('npm', '[[ "${FAIL_BUILD:-}" != true ]]\n');
+    script('uname', 'echo Darwin\n');
+    script('launchctl', 'exit 0\n');
+    script('sleep', 'exit 0\n');
+    const root = path.join(temp, 'installation'); fs.mkdirSync(path.join(root, 'config'), { recursive: true });
+    for (const name of ['.env.local', '.server.env']) fs.writeFileSync(path.join(root, 'config', name), 'private-fixture');
+    const old = path.join(root, 'old'); fs.mkdirSync(old); fs.symlinkSync(old, path.join(root, 'current'));
+    const env = { ...process.env, PATH: bin + path.delimiter + process.env.PATH, FIXTURE: fixture, CHECKSUM: checksum };
+    const update = (extra = [], vars = {}) => run('bash', [path.join(repository, 'scripts/update-mac.sh'), `v${version}`, root, ...extra], { env: { ...env, ...vars } });
+    fs.writeFileSync(checksum, '0'.repeat(64) + `  cerritos-home-${version}-server.tar.gz\n`);
+    assert.notEqual(update(['--no-restart']).status, 0);
+    assert.equal(fs.readlinkSync(path.join(root, 'current')), old);
+    fs.writeFileSync(checksum, goodChecksum);
+    assert.notEqual(update(['--no-restart'], { FAIL_BUILD: 'true' }).status, 0);
+    assert.equal(fs.readlinkSync(path.join(root, 'current')), old);
+    const rollback = update();
+    assert.notEqual(rollback.status, 0);
+    assert.match(rollback.stderr, /restauró/);
+    assert.equal(fs.readlinkSync(path.join(root, 'current')), old);
+    fs.rmSync(path.join(root, `releases/v${version}`), { recursive: true });
+    fs.copyFileSync(fixture, path.join(temp, `cerritos-home-${version}-server.tar.gz`));
+    fs.copyFileSync(checksum, path.join(temp, `cerritos-home-${version}-server.tar.gz.sha256`));
+    const success = update(['--no-restart', temp]);
+    assert.equal(success.status, 0, success.stderr);
+    assert.equal(fs.readlinkSync(path.join(root, 'current')), path.join(root, `releases/v${version}`));
+    assert.equal(fs.readFileSync(path.join(root, 'current/.server.env'), 'utf8'), 'private-fixture');
+    assert.ok(fs.existsSync(old));
+    assert.equal(fs.existsSync(path.join(root, '.update-lock')), false);
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});

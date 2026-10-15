@@ -27,7 +27,7 @@ async function login(){
  fireEvent.change(screen.getByLabelText('Correo electrónico'),{target:{value:'operator@example.com'}});
  fireEvent.change(screen.getByLabelText('Contraseña'),{target:{value:'Secret123!'}});
  fireEvent.click(screen.getByRole('button',{name:'Ingresar',exact:true}));
- await screen.findByRole('heading',{name:'Tu comunidad, en orden.'});
+ await screen.findByRole('heading',{name:'Resumen del conjunto'});
 }
 describe('Ingreso Firebase y acceso por rol (servicios simulados)',()=>{
  it('muestra el error de contraseña y permite solicitar recuperación',async()=>{
@@ -65,10 +65,12 @@ describe('Ingreso Firebase y acceso por rol (servicios simulados)',()=>{
   const dialog=screen.getByRole('dialog');
   fireEvent.click(within(dialog).getByRole('button',{name:'Golfito',exact:true}));
   fireEvent.change(within(dialog).getByLabelText('Nombre del residente'),{target:{value:'Ana'}});
-  fireEvent.change(within(dialog).getByLabelText('Casa o apartamento'),{target:{value:'Casa 1'}});
+  fireEvent.change(within(dialog).getByLabelText('Manzana'),{target:{value:'A'}});
+  fireEvent.change(within(dialog).getByLabelText('Número de casa'),{target:{value:'1'}});
   fireEvent.change(within(dialog).getByLabelText('Fecha'),{target:{value:'2099-01-01'}});
   fireEvent.submit(dialog.querySelector('form')!);
   expect((await within(dialog).findByRole('alert')).textContent).toContain('ya está reservada');
+  expect(state.rpc).toHaveBeenCalledWith('create_reservation',expect.objectContaining({p_block:'A',p_unit:'1'}));
   expect(screen.queryByText('Reserva creada correctamente')).toBeNull();
  });
 });

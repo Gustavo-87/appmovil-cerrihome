@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: Rama o SHA completo de firebase-golfito-0.3.0
-        default: firebase-golfito-0.3.0
+        description: Rama o SHA completo contenido en main
+        default: main
         required: true
       publish:
         description: Compilar con firma permanente y publicar; false solo comprueba compilación sin firma
@@ -42,7 +42,7 @@ jobs:
           fi
       - run: |
           test "$(node -p 'require("./package.json").version')" = 0.5.0
-          git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
+          git merge-base --is-ancestor HEAD origin/main
           npm ci
           npm test
           python3 tests/signing-backup.py

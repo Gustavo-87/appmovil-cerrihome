@@ -9,9 +9,9 @@ on:
         required: true
         default: v0.5.0
       source_ref:
-        description: 'Commit o rama fuente de firebase-golfito-0.3.0'
+        description: 'Commit o rama fuente contenido en main'
         required: true
-        default: firebase-golfito-0.3.0
+        default: main
 permissions:
   contents: write
 concurrency:
@@ -34,7 +34,7 @@ jobs:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           test "$TAG" = "v$(node -p 'require("./package.json").version')"
-          git merge-base --is-ancestor HEAD origin/firebase-golfito-0.3.0
+          git merge-base --is-ancestor HEAD origin/main
       - run: npm ci
       - run: npm test
       - run: npm run build:production

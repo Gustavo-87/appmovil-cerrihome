@@ -50,9 +50,9 @@ Desde Terminal, dentro de la misma carpeta que ya utiliza tu LaunchAgent, ejecut
 
 ```zsh
 CERRITOS_UPDATE_DIR="$(mktemp -d)"
-curl -fL https://github.com/Gustavo-87/appmovil-cerrihome/archive/refs/heads/firebase-golfito-0.3.0.zip -o "$CERRITOS_UPDATE_DIR/source.zip"
+curl -fL https://github.com/Gustavo-87/appmovil-cerrihome/archive/refs/heads/main.zip -o "$CERRITOS_UPDATE_DIR/source.zip"
 unzip -q "$CERRITOS_UPDATE_DIR/source.zip" -d "$CERRITOS_UPDATE_DIR"
-ditto "$CERRITOS_UPDATE_DIR/appmovil-cerrihome-firebase-golfito-0.3.0" .
+ditto "$CERRITOS_UPDATE_DIR/appmovil-cerrihome-main" .
 npm ci
 npm approve-scripts esbuild @firebase/util protobufjs
 npm rebuild esbuild @firebase/util protobufjs

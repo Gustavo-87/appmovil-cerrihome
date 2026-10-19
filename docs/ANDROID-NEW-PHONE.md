@@ -27,7 +27,7 @@ set -euo pipefail
 umask 077
 signing_review=$(mktemp -d "$HOME/cerritos-signing-review.XXXXXX")
 gh repo clone Gustavo-87/appmovil-cerrihome "$signing_review/repo" \
-  -- --branch firebase-golfito-0.3.0 --single-branch
+  -- --branch main --single-branch
 python3 "$signing_review/repo/scripts/setup-android-signing.py"
 ```
 

@@ -2,7 +2,8 @@
 
 ## Estado de recuperación
 
-Base: `firebase-golfito-0.3.0`, `e80d9fd`, versión 0.5.0, Android versionCode 8.
+Base histórica: `firebase-golfito-0.3.0`, `e80d9fd`, versión 0.5.0, Android versionCode 8.
+El desarrollo y las publicaciones actuales utilizan únicamente la rama `main`.
 En este entorno no existen la APK 0.5.0, `/tmp/cerritos-android-user/debug.keystore`
 ni los objetos locales `0492f6f` y `34ce9ea`. La automatización se reconstruye aquí.
 Los certificados extraídos del bloque v2 de las APK 0.4.0–0.4.3 coinciden:
@@ -25,7 +26,7 @@ El certificado público no permite recuperar la clave privada.
    el actualizador lo rechaza.
 3. La versión `vX.Y.Z` debe coincidir con package.json. El disparador manual
    permite seleccionar el commit o rama fuente y comprueba que pertenece a
-   `firebase-golfito-0.3.0`. El workflow completa el **borrador** existente
+   `main`. El workflow completa el **borrador** existente
    (o crea uno) con servidor, actualizador y sus SHA256. No genera ni adjunta APK.
    Después vuelve a descargar los cuatro assets y compara sus bytes y checksums.
 4. Revisa los archivos antes de publicar el borrador. No reutilices una etiqueta
@@ -86,11 +87,11 @@ existentes en tu instalación actual, ejecuta este bloque en Bash. Solo se leen
 ```bash
 set -euo pipefail
 umask 077
-active="/Users/gustavopiedrahita/DEVELOPER/Proyectos/appmovil-cerrihome-firebase-golfito-0.3.0"
+active="/RUTA/A/LA/INSTALACION/ACTIVA"
 test -f "$active/.env.local"
 test -f "$active/.server.env"
 review=$(mktemp -d "$HOME/cerritos-review-0.5.0.XXXXXX")
-gh repo clone Gustavo-87/appmovil-cerrihome "$review/repo" -- --branch firebase-golfito-0.3.0 --single-branch
+gh repo clone Gustavo-87/appmovil-cerrihome "$review/repo" -- --branch main --single-branch
 mkdir "$review/assets"
 gh release download v0.5.0 --repo Gustavo-87/appmovil-cerrihome --dir "$review/assets"
 (cd "$review/assets" && shasum -a 256 -c cerritos-home-0.5.0-server.tar.gz.sha256 && shasum -a 256 -c cerritos-home-0.5.0-update-mac.sh.sha256)

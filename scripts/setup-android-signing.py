@@ -149,8 +149,8 @@ def main():
     print('Respaldo cifrado: ' + str(backup_copy))
     print('Recuperación: Llavero de macOS, elemento ' + SERVICE)
     print('Copia el respaldo cifrado a otro dispositivo y conserva la contraseña de recuperación en tu gestor de contraseñas.')
-    run(['gh', 'workflow', 'run', 'android-new-phone.yml', '--repo', REPO, '--ref', 'firebase-golfito-0.3.0',
-         '-f', 'source_ref=firebase-golfito-0.3.0', '-f', 'publish=true'])
+    run(['gh', 'workflow', 'run', 'android-new-phone.yml', '--repo', REPO, '--ref', 'main',
+         '-f', 'source_ref=main', '-f', 'publish=true'])
     print('Solicitada la compilación y publicación de la APK para teléfono nuevo.')
 
 
